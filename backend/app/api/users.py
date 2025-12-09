@@ -71,8 +71,8 @@ async def update_user(user_id: str, user_update: User) -> User:
     for field, value in update_data.items():
         setattr(existing_user, field, value)
     
-    from datetime import datetime
-    existing_user.updated_at = datetime.utcnow()
+    from datetime import datetime, timezone
+    existing_user.updated_at = datetime.now(timezone.utc)
     
     return existing_user
 

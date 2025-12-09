@@ -1,7 +1,7 @@
 """
 Recording model for Toast Club PMV
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -16,7 +16,7 @@ class Recording(BaseModel):
     file_size: Optional[int] = Field(default=None, description="File size in bytes")
     duration: Optional[int] = Field(default=None, description="Recording duration in seconds")
     mime_type: str = Field(default="audio/mpeg", description="MIME type of the recording")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Creation timestamp")
     uploaded_at: Optional[datetime] = Field(default=None, description="Upload completion timestamp")
     is_processed: bool = Field(default=False, description="Whether the recording has been processed")
 

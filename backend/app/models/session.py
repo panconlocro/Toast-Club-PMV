@@ -1,7 +1,7 @@
 """
 Session model for Toast Club PMV
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -28,8 +28,8 @@ class Session(BaseModel):
     title: str = Field(..., description="Session title")
     description: Optional[str] = Field(default=None, description="Session description")
     state: SessionState = Field(default=SessionState.CREATED, description="Current session state")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
-    updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update timestamp")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Creation timestamp")
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Last update timestamp")
     started_at: Optional[datetime] = Field(default=None, description="Session start timestamp")
     completed_at: Optional[datetime] = Field(default=None, description="Session completion timestamp")
     recording_id: Optional[str] = Field(default=None, description="Associated recording ID")

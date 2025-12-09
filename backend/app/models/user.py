@@ -1,7 +1,7 @@
 """
 User model for Toast Club PMV
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
@@ -14,8 +14,8 @@ class User(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     name: str = Field(..., description="User full name")
     role: str = Field(..., description="User role: impulsador or analista")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
-    updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update timestamp")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Creation timestamp")
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Last update timestamp")
     is_active: bool = Field(default=True, description="User active status")
 
     class Config:

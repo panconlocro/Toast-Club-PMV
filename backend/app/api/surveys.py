@@ -65,13 +65,13 @@ async def update_survey(survey_id: str, survey_update: Survey) -> Survey:
     for field, value in update_data.items():
         setattr(existing_survey, field, value)
     
-    from datetime import datetime
-    existing_survey.updated_at = datetime.utcnow()
+    from datetime import datetime, timezone
+    existing_survey.updated_at = datetime.now(timezone.utc)
     
     # Mark as completed if responses are provided
     if existing_survey.responses and not existing_survey.is_completed:
         existing_survey.is_completed = True
-        existing_survey.completed_at = datetime.utcnow()
+        existing_survey.completed_at = datetime.now(timezone.utc)
     
     return existing_survey
 

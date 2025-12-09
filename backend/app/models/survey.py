@@ -1,7 +1,7 @@
 """
 Survey model for Toast Club PMV
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,7 @@ class Survey(BaseModel):
     user_id: str = Field(..., description="User who completed the survey")
     questions: Dict[str, Any] = Field(default_factory=dict, description="Survey questions and structure")
     responses: Dict[str, Any] = Field(default_factory=dict, description="User responses to survey questions")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Creation timestamp")
     completed_at: Optional[datetime] = Field(default=None, description="Survey completion timestamp")
     is_completed: bool = Field(default=False, description="Whether the survey has been completed")
 

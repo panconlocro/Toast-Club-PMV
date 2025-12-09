@@ -64,8 +64,8 @@ async def update_session(session_id: str, session_update: Session) -> Session:
     for field, value in update_data.items():
         setattr(existing_session, field, value)
     
-    from datetime import datetime
-    existing_session.updated_at = datetime.utcnow()
+    from datetime import datetime, timezone
+    existing_session.updated_at = datetime.now(timezone.utc)
     
     return existing_session
 
@@ -84,13 +84,13 @@ async def update_session_state(session_id: str, new_state: SessionState) -> Sess
     session = sessions_db[session_id]
     session.state = new_state
     
-    from datetime import datetime
-    session.updated_at = datetime.utcnow()
+    from datetime import datetime, timezone
+    session.updated_at = datetime.now(timezone.utc)
     
     if new_state == SessionState.RUNNING and not session.started_at:
-        session.started_at = datetime.utcnow()
+        session.started_at = datetime.now(timezone.utc)
     elif new_state == SessionState.COMPLETED:
-        session.completed_at = datetime.utcnow()
+        session.completed_at = datetime.now(timezone.utc)
     
     return session
 

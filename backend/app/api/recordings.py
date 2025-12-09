@@ -31,7 +31,7 @@ async def upload_recording(
     Upload a recording file for a session
     """
     import uuid
-    from datetime import datetime
+    from datetime import datetime, timezone
     
     # Create recording entry
     recording_id = f"rec_{uuid.uuid4().hex[:12]}"
@@ -45,7 +45,7 @@ async def upload_recording(
         session_id=session_id,
         file_path=file_path,
         mime_type=file.content_type or "audio/mpeg",
-        uploaded_at=datetime.utcnow()
+        uploaded_at=datetime.now(timezone.utc)
     )
     
     recordings_db[recording.id] = recording
