@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toast Club - Analista</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Panel Analista</h1>
+            <nav>
+                <a href="../index.html">← Volver</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="stats">
+                <h2>Estadísticas Generales</h2>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <h3 id="totalSessions">0</h3>
+                        <p>Sesiones Totales</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="completedSessions">0</h3>
+                        <p>Sesiones Completadas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalUsers">0</h3>
+                        <p>Usuarios Activos</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalSurveys">0</h3>
+                        <p>Encuestas Realizadas</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="sessions-analysis">
+                <h2>Análisis de Sesiones</h2>
+                <div class="filter-controls">
+                    <label for="stateFilter">Filtrar por estado:</label>
+                    <select id="stateFilter">
+                        <option value="">Todos</option>
+                        <option value="created">Creada</option>
+                        <option value="ready_to_start">Lista para iniciar</option>
+                        <option value="running">En ejecución</option>
+                        <option value="audio_uploaded">Audio subido</option>
+                        <option value="survey_pending">Encuesta pendiente</option>
+                        <option value="completed">Completada</option>
+                    </select>
+                </div>
+                <div id="sessionsTable">
+                    <p class="loading">Cargando datos...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/analista.js"></script>
+</body>
+</html>
