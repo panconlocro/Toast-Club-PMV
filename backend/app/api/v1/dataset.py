@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from pydantic import BaseModel
+from typing import List, Dict, Any, Optional
 from ...db.session import get_db
 from ...models.session import Session as SessionModel
 from ...models.recording import Recording
@@ -25,10 +26,6 @@ class DatasetEntry(BaseModel):
     created_at: str
     recordings_count: int
     surveys_count: int
-
-
-from pydantic import BaseModel
-from typing import Optional
 
 
 @router.get("/dataset")
