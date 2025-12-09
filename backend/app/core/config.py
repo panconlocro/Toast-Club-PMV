@@ -14,7 +14,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://toastclub:toastclub@db:5432/toastclub"
     
     # Security
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # WARNING: Change SECRET_KEY in production! Use a cryptographically secure random string.
+    # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+    SECRET_KEY: str = "your-secret-key-change-in-production-NEVER-use-this-default"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     

@@ -29,6 +29,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Redirect to login on unauthorized
+      // Note: Using window.location causes full page reload
+      // For better UX, consider passing navigation callback from useNavigate hook
       localStorage.removeItem('token')
       localStorage.removeItem('role')
       window.location.href = '/login'
