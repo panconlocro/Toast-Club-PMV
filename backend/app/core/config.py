@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Database
-    DATABASE_URL: str = "postgresql://toastclub:toastclub@db:5432/toastclub"
+    DATABASE_URL: str = "postgresql://postgres:chicho2015@localhost:5432/toastclub"
     
     # Security
     # WARNING: Change SECRET_KEY in production! Use a cryptographically secure random string.
