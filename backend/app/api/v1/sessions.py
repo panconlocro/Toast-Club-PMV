@@ -87,6 +87,26 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
         updated_at=session.updated_at.isoformat() if session.updated_at else None
     )
 
+@router.get("/sessions/by-code/{session_code}", response_model=SessionResponse)
+def get_session_by_code(session_code: str, db: Session = Depends(get_db)):
+    """Get session details by session_code (for VR app)."""
+    session = db.query(SessionModel).filter(SessionModel.session_code == session_code).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid session_code"
+        )
+
+    return SessionResponse(
+        id=session.id,
+        session_code=session.session_code,
+        datos_participante=session.datos_participante,
+        texto_seleccionado=session.texto_seleccionado,
+        estado=session.estado,
+        created_at=session.created_at.isoformat() if session.created_at else "",
+        updated_at=session.updated_at.isoformat() if session.updated_at else None
+    )
 
 @router.patch("/sessions/{session_id}/state", response_model=SessionResponse)
 def update_session_state(

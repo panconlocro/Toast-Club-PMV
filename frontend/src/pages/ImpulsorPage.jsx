@@ -82,7 +82,7 @@ function ImpulsorPage() {
             
             {currentSession.estado === 'running' && (
               <>
-                <p>🎙️ Recording in progress (simulated)...</p>
+                <p>Recording in progress (simulated)...</p>
                 <button onClick={handleUploadAudio} className="btn btn-primary">
                   Upload Recording (Mock)
                 </button>
@@ -90,7 +90,7 @@ function ImpulsorPage() {
             )}
             
             {currentSession.estado === 'audio_uploaded' && (
-              <p>⏳ Processing audio...</p>
+              <p>Processing audio...</p>
             )}
           </div>
         </div>
