@@ -16,7 +16,8 @@ function ImpulsorPage() {
   const handleStartSession = async () => {
     try {
       await sessionsAPI.updateSessionState(currentSession.id, 'ready_to_start')
-      await sessionsAPI.updateSessionState(currentSession.id, 'running')
+      const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'running')
+      setCurrentSession(updatedSession)  // <-- actualizar estado en React y que se actualice la UI
       setMessage('Session started! You can now record your audio.')
     } catch (error) {
       setMessage('Error starting session: ' + (error.response?.data?.detail || error.message))
@@ -31,7 +32,8 @@ function ImpulsorPage() {
         duracion_segundos: 120,
         formato: 'wav'
       })
-      await sessionsAPI.updateSessionState(currentSession.id, 'survey_pending')
+      const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'survey_pending')
+      setCurrentSession(updatedSession)
       setMessage('Audio uploaded successfully! Please fill out the survey.')
       setShowSurvey(true)
     } catch (error) {
