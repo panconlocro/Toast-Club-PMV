@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     # Storage (for future audio files)
     UPLOAD_DIR: str = "uploads"
     MAX_AUDIO_SIZE_MB: int = 50
+
+    # Cloudflare R2 (S3-compatible) storage
+    R2_ENDPOINT_URL: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_BUCKET: str = ""
+    R2_REGION: str = "auto"
     
     class Config:
         env_file = ".env"
