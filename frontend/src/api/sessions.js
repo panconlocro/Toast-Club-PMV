@@ -47,6 +47,11 @@ export const sessionsAPI = {
       respuestas_json: surveyData
     })
     return response.data
+  },
+
+  getSurveys: async (sessionId) => {
+    const response = await apiClient.get(`${API_V1}/sessions/${sessionId}/survey`)
+    return response.data
   }
 }
 
