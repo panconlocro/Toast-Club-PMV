@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import SessionForm from '../components/SessionForm'
 import SurveyForm from '../components/SurveyForm'
 import { sessionsAPI } from '../api/sessions'
 
 function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
-  const [showSurvey, setShowSurvey] = useState(false)
   const [message, setMessage] = useState('')
 
   const handleSessionCreated = (session) => {
@@ -39,34 +38,48 @@ function ImpulsorPage() {
       await sessionsAPI.updateSessionState(currentSession.id, 'ready_to_start')
       const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'running')
       setCurrentSession(updatedSession)  // <-- actualizar estado en React y que se actualice la UI
-      setMessage('Session started! You can now record your audio.')
+      setMessage('Session started! Waiting for Unity to upload the audio...')
     } catch (error) {
       setMessage('Error starting session: ' + (error.response?.data?.detail || error.message))
     }
   }
 
-  const handleUploadAudio = async () => {
-    // Mock upload
-    try {
-      await sessionsAPI.uploadRecording(currentSession.id, {
-        audio_url: '/mock-audio.wav',
-        duracion_segundos: 120,
-        formato: 'wav'
-      })
-      const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'survey_pending')
-      setCurrentSession(updatedSession)
-      setMessage('Audio uploaded successfully! Please fill out the survey.')
-      setShowSurvey(true)
-    } catch (error) {
-      setMessage('Error uploading audio: ' + (error.response?.data?.detail || error.message))
-    }
-  }
-
   const handleSurveySubmitted = () => {
     setMessage('Thank you! Your feedback has been submitted.')
-    setShowSurvey(false)
     setCurrentSession(null)
   }
+
+  // Poll the session state so the UI updates when Unity uploads audio via backend.
+  useEffect(() => {
+    if (!currentSession?.id) return
+
+    const shouldPoll = ['running', 'audio_uploaded', 'survey_pending'].includes(currentSession.estado)
+    if (!shouldPoll) return
+
+    const intervalId = setInterval(async () => {
+      try {
+        const latest = await sessionsAPI.getSession(currentSession.id)
+        setCurrentSession((prev) => {
+          if (!prev) return latest
+          if (prev.estado !== latest.estado) {
+            if (latest.estado === 'audio_uploaded') {
+              setMessage('Audio received. Waiting for survey to be enabled...')
+            }
+            if (latest.estado === 'survey_pending') {
+              setMessage('Audio received. Please fill out the survey.')
+            }
+          }
+          return latest
+        })
+      } catch (_) {
+        // silent: we don't want to spam the user while polling
+      }
+    }, 3000)
+
+    return () => clearInterval(intervalId)
+  }, [currentSession?.id, currentSession?.estado])
+
+  window.currentSession = currentSession  // For debugging purposes
 
   return (
     <div className="container">
@@ -83,7 +96,7 @@ function ImpulsorPage() {
         <SessionForm onSessionCreated={handleSessionCreated} />
       )}
 
-      {currentSession && !showSurvey && (
+      {currentSession && currentSession.estado !== 'survey_pending' && (
         <div className="card">
           <h2>Current Session</h2>
           <p>
@@ -113,21 +126,18 @@ function ImpulsorPage() {
             
             {currentSession.estado === 'running' && (
               <>
-                <p>Recording in progress (simulated)...</p>
-                <button onClick={handleUploadAudio} className="btn btn-primary">
-                  Upload Recording (Mock)
-                </button>
+                <p>Session is running. Unity will upload the audio via backend.</p>
               </>
             )}
             
             {currentSession.estado === 'audio_uploaded' && (
-              <p>Processing audio...</p>
+              <p>Audio uploaded. Waiting for survey...</p>
             )}
           </div>
         </div>
       )}
 
-      {showSurvey && currentSession && (
+      {currentSession?.estado === 'survey_pending' && (
         <SurveyForm 
           sessionId={currentSession.id}
           onSurveySubmitted={handleSurveySubmitted}

@@ -37,11 +37,6 @@ export const sessionsAPI = {
     return response.data
   },
   
-  uploadRecording: async (sessionId, recordingData) => {
-    const response = await apiClient.post(`${API_V1}/sessions/${sessionId}/recording`, recordingData)
-    return response.data
-  },
-  
   submitSurvey: async (sessionId, surveyData) => {
     const response = await apiClient.post(`${API_V1}/sessions/${sessionId}/survey`, {
       respuestas_json: surveyData
