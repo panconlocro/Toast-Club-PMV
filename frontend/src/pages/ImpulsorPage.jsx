@@ -13,6 +13,27 @@ function ImpulsorPage() {
     setMessage(`Session created successfully! Session Code: ${session.session_code}`)
   }
 
+  const handleCopySessionCode = async () => {
+    const code = currentSession?.session_code
+    if (!code) return
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = code
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setMessage('Session code copied to clipboard.')
+    } catch (error) {
+      setMessage('Could not copy session code.')
+    }
+  }
+
   const handleStartSession = async () => {
     try {
       await sessionsAPI.updateSessionState(currentSession.id, 'ready_to_start')
@@ -65,7 +86,17 @@ function ImpulsorPage() {
       {currentSession && !showSurvey && (
         <div className="card">
           <h2>Current Session</h2>
-          <p><strong>Session Code:</strong> {currentSession.session_code}</p>
+          <p>
+            <strong>Session Code:</strong> {currentSession.session_code}{' '}
+            <button
+              type="button"
+              onClick={handleCopySessionCode}
+              className="btn btn-secondary"
+              style={{ padding: '6px 10px', fontSize: '14px', marginLeft: '8px' }}
+            >
+              Copy
+            </button>
+          </p>
           <p><strong>Participant:</strong> {currentSession.datos_participante.nombre}</p>
           <p><strong>State:</strong> {currentSession.estado}</p>
           <p><strong>Training Text:</strong></p>
