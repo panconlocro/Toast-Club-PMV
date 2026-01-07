@@ -6,6 +6,7 @@ import { sessionsAPI } from '../api/sessions'
 function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
   const [message, setMessage] = useState('')
+  const [lastCheck, setLastCheck] = useState(null)
   const pollingIntervalRef = useRef(null)
 
   const handleSessionCreated = (session) => {
@@ -70,6 +71,7 @@ function ImpulsorPage() {
         try {
           const latest = await sessionsAPI.getSession(sessionId)
           setCurrentSession(latest)
+          setLastCheck(new Date())
         } catch (error) {
           console.warn('Polling failed:', error?.message || error)
         }
@@ -107,14 +109,16 @@ function ImpulsorPage() {
           <h2>Current Session</h2>
           <p>
             <strong>Session Code:</strong> {currentSession.session_code}{' '}
-            <button
-              type="button"
-              onClick={handleCopySessionCode}
-              className="btn btn-secondary"
-              style={{ padding: '6px 10px', fontSize: '14px', marginLeft: '8px' }}
-            >
-              Copy
-            </button>
+            {currentSession.estado !== 'running' && (
+              <button
+                type="button"
+                onClick={handleCopySessionCode}
+                className="btn btn-secondary"
+                style={{ padding: '6px 10px', fontSize: '14px', marginLeft: '8px' }}
+              >
+                Copy
+              </button>
+            )}
           </p>
           <p><strong>Participant:</strong> {currentSession.datos_participante.nombre}</p>
           <p><strong>State:</strong> {currentSession.estado}</p>
@@ -132,7 +136,18 @@ function ImpulsorPage() {
             
             {currentSession.estado === 'running' && (
               <>
-                <p>Session is running. Unity will upload the audio via backend.</p>
+                <p><strong>Waiting for Unity to upload audio...</strong></p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '12px 0' }}>
+                  <div className="loader" aria-label="Loading" />
+                  <p style={{ margin: 0 }}>
+                    The simulation is in progress. Audio will be uploaded automatically when finished.
+                  </p>
+                </div>
+                {lastCheck && (
+                  <p style={{ marginTop: '8px' }}>
+                    <strong>Last check:</strong> {lastCheck.toLocaleTimeString()}
+                  </p>
+                )}
               </>
             )}
             
