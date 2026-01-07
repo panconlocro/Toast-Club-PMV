@@ -57,8 +57,11 @@ function ImpulsorPage() {
   }
 
   const handleSurveySubmitted = () => {
-    setMessage('Thank you! Your feedback has been submitted.')
-    setCurrentSession(null)
+    setCurrentSession((prev) => {
+      if (!prev) return prev
+      return { ...prev, estado: 'completed' }
+    })
+    setMessage('Session completed successfully')
   }
 
   // Poll backend while the session is running so the UI updates automatically.
@@ -119,7 +122,7 @@ function ImpulsorPage() {
         <SessionForm onSessionCreated={handleSessionCreated} />
       )}
 
-      {currentSession && currentSession.estado !== 'survey_pending' && (
+      {currentSession && currentSession.estado !== 'survey_pending' && currentSession.estado !== 'completed' && (
         <div className="card">
           <h2>Current Session</h2>
           <p>
@@ -183,6 +186,14 @@ function ImpulsorPage() {
           sessionId={currentSession.id}
           onSurveySubmitted={handleSurveySubmitted}
         />
+      )}
+
+      {currentSession?.estado === 'completed' && (
+        <div className="card">
+          <h2>Session completed successfully</h2>
+          <p><strong>Session Code:</strong> {currentSession.session_code}</p>
+          <p><strong>State:</strong> {currentSession.estado}</p>
+        </div>
       )}
     </div>
   )
