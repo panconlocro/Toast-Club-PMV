@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import SessionForm from '../components/SessionForm'
 import SurveyForm from '../components/SurveyForm'
 import { sessionsAPI } from '../api/sessions'
@@ -6,6 +6,7 @@ import { sessionsAPI } from '../api/sessions'
 function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
   const [message, setMessage] = useState('')
+  const pollingIntervalRef = useRef(null)
 
   const handleSessionCreated = (session) => {
     setCurrentSession(session)
@@ -49,34 +50,39 @@ function ImpulsorPage() {
     setCurrentSession(null)
   }
 
-  // Poll the session state so the UI updates when Unity uploads audio via backend.
+  // Poll backend while the session is running so the UI updates automatically.
   useEffect(() => {
-    if (!currentSession?.id) return
+    const sessionId = currentSession?.id
+    const isRunning = currentSession?.estado === 'running'
 
-    const shouldPoll = ['running', 'audio_uploaded', 'survey_pending'].includes(currentSession.estado)
-    if (!shouldPoll) return
-
-    const intervalId = setInterval(async () => {
-      try {
-        const latest = await sessionsAPI.getSession(currentSession.id)
-        setCurrentSession((prev) => {
-          if (!prev) return latest
-          if (prev.estado !== latest.estado) {
-            if (latest.estado === 'audio_uploaded') {
-              setMessage('Audio received. Waiting for survey to be enabled...')
-            }
-            if (latest.estado === 'survey_pending') {
-              setMessage('Audio received. Please fill out the survey.')
-            }
-          }
-          return latest
-        })
-      } catch (_) {
-        // silent: we don't want to spam the user while polling
+    // Stop polling when we don't have a session or it stopped running.
+    if (!sessionId || !isRunning) {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
       }
-    }, 3000)
+      return
+    }
 
-    return () => clearInterval(intervalId)
+    // Avoid duplicate intervals.
+    if (!pollingIntervalRef.current) {
+      pollingIntervalRef.current = setInterval(async () => {
+        try {
+          const latest = await sessionsAPI.getSession(sessionId)
+          setCurrentSession(latest)
+        } catch (error) {
+          console.warn('Polling failed:', error?.message || error)
+        }
+      }, 2500)
+    }
+
+    // Cleanup on unmount.
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
   }, [currentSession?.id, currentSession?.estado])
 
   window.currentSession = currentSession  // For debugging purposes
