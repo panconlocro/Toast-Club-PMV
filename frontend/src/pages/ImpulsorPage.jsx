@@ -46,6 +46,16 @@ function ImpulsorPage() {
     }
   }
 
+  const handleContinueToSurvey = async () => {
+    try {
+      const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'survey_pending')
+      setCurrentSession(updatedSession)
+      setMessage('Please fill out the survey.')
+    } catch (error) {
+      setMessage('Error continuing to survey: ' + (error.response?.data?.detail || error.message))
+    }
+  }
+
   const handleSurveySubmitted = () => {
     setMessage('Thank you! Your feedback has been submitted.')
     setCurrentSession(null)
@@ -70,7 +80,12 @@ function ImpulsorPage() {
       pollingIntervalRef.current = setInterval(async () => {
         try {
           const latest = await sessionsAPI.getSession(sessionId)
-          setCurrentSession(latest)
+          setCurrentSession((prev) => {
+            if (prev?.estado === 'running' && latest?.estado === 'audio_uploaded') {
+              setMessage('Audio received successfully')
+            }
+            return latest
+          })
           setLastCheck(new Date())
         } catch (error) {
           console.warn('Polling failed:', error?.message || error)
@@ -152,7 +167,12 @@ function ImpulsorPage() {
             )}
             
             {currentSession.estado === 'audio_uploaded' && (
-              <p>Audio uploaded. Waiting for survey...</p>
+              <>
+                <p><strong>Audio received successfully</strong></p>
+                <button onClick={handleContinueToSurvey} className="btn btn-primary">
+                  Continue to Survey
+                </button>
+              </>
             )}
           </div>
         </div>
