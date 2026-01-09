@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+
+    # Timezone (API responses)
+    # Peru timezone is UTC-5 year-round.
+    TIMEZONE: str = "America/Lima"
     
     # Storage (for future audio files)
     UPLOAD_DIR: str = "uploads"

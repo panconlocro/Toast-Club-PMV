@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any
 from ...db.session import get_db
 from ...models.session import Session as SessionModel
 from ...core.state_machine import SessionState, SessionStateMachine
+from ...core.time import to_local_iso
 
 router = APIRouter()
 
@@ -61,8 +62,8 @@ def create_session(session_data: SessionCreate, db: Session = Depends(get_db)):
         datos_participante=new_session.datos_participante,
         texto_seleccionado=new_session.texto_seleccionado,
         estado=new_session.estado,
-        created_at=new_session.created_at.isoformat() if new_session.created_at else "",
-        updated_at=new_session.updated_at.isoformat() if new_session.updated_at else None
+        created_at=to_local_iso(new_session.created_at) or "",
+        updated_at=to_local_iso(new_session.updated_at)
     )
 
 
@@ -83,8 +84,8 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
         datos_participante=session.datos_participante,
         texto_seleccionado=session.texto_seleccionado,
         estado=session.estado,
-        created_at=session.created_at.isoformat() if session.created_at else "",
-        updated_at=session.updated_at.isoformat() if session.updated_at else None
+        created_at=to_local_iso(session.created_at) or "",
+        updated_at=to_local_iso(session.updated_at)
     )
 
 @router.get("/sessions/by-code/{session_code}", response_model=SessionResponse)
@@ -104,8 +105,8 @@ def get_session_by_code(session_code: str, db: Session = Depends(get_db)):
         datos_participante=session.datos_participante,
         texto_seleccionado=session.texto_seleccionado,
         estado=session.estado,
-        created_at=session.created_at.isoformat() if session.created_at else "",
-        updated_at=session.updated_at.isoformat() if session.updated_at else None
+        created_at=to_local_iso(session.created_at) or "",
+        updated_at=to_local_iso(session.updated_at)
     )
 
 @router.patch("/sessions/{session_id}/state", response_model=SessionResponse)
@@ -146,6 +147,6 @@ def update_session_state(
         datos_participante=session.datos_participante,
         texto_seleccionado=session.texto_seleccionado,
         estado=session.estado,
-        created_at=session.created_at.isoformat() if session.created_at else "",
-        updated_at=session.updated_at.isoformat() if session.updated_at else None
+        created_at=to_local_iso(session.created_at) or "",
+        updated_at=to_local_iso(session.updated_at)
     )

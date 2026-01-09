@@ -11,6 +11,7 @@ from ...models.session import Session as SessionModel
 from ...core.state_machine import SessionState
 from ...core.security import get_current_user_role
 from ...core.config import settings
+from ...core.time import to_local_iso
 from ...core.storage_r2 import upload_fileobj, presign_get_url
 
 router = APIRouter()
@@ -77,7 +78,7 @@ def create_recording(
         audio_url=recording.audio_url,
         duracion_segundos=recording.duracion_segundos,
         formato=recording.formato,
-        created_at=recording.created_at.isoformat() if recording.created_at else ""
+        created_at=to_local_iso(recording.created_at) or ""
     )
 
 
@@ -142,7 +143,7 @@ async def upload_audio_file(
         audio_url=recording.audio_url,
         duracion_segundos=recording.duracion_segundos,
         formato=recording.formato,
-        created_at=recording.created_at.isoformat() if recording.created_at else ""
+        created_at=to_local_iso(recording.created_at) or ""
     )
 
 
