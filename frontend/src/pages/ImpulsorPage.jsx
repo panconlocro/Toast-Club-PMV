@@ -9,6 +9,16 @@ function ImpulsorPage() {
   const [lastCheck, setLastCheck] = useState(null)
   const pollingIntervalRef = useRef(null)
 
+  const handleCreateNewSession = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+    setCurrentSession(null)
+    setLastCheck(null)
+    setMessage('')
+  }
+
   const handleSessionCreated = (session) => {
     setCurrentSession(session)
     setMessage(`Session created successfully! Session Code: ${session.session_code}`)
@@ -192,7 +202,12 @@ function ImpulsorPage() {
         <div className="card">
           <h2>Session completed successfully</h2>
           <p><strong>Session Code:</strong> {currentSession.session_code}</p>
-          <p><strong>State:</strong> {currentSession.estado}</p>
+          <p><strong>Participant:</strong> {currentSession.datos_participante?.nombre}</p>
+          <div style={{ marginTop: '16px' }}>
+            <button onClick={handleCreateNewSession} className="btn btn-primary">
+              Create new session
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -1,102 +1,118 @@
-# Contributing to Toast Club PMV
+# Contribuir a Toast Club PMV
 
-Thank you for your interest in contributing to Toast Club PMV! This document provides guidelines and instructions for contributing.
+Gracias por tu interés en contribuir a Toast Club PMV. Este documento contiene pautas e instrucciones para contribuir.
 
-## Table of Contents
-1. [Code of Conduct](#code-of-conduct)
-2. [Getting Started](#getting-started)
-3. [Development Workflow](#development-workflow)
-4. [Coding Standards](#coding-standards)
-5. [Testing Guidelines](#testing-guidelines)
-6. [Pull Request Process](#pull-request-process)
+## Tabla de contenidos
 
-## Code of Conduct
+1. [Código de conducta](#código-de-conducta)
+2. [Primeros pasos](#primeros-pasos)
+3. [Flujo de trabajo](#flujo-de-trabajo)
+4. [Estándares de código](#estándares-de-código)
+5. [Guía de pruebas](#guía-de-pruebas)
+6. [Proceso de PR (Pull Request)](#proceso-de-pr-pull-request)
 
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Help others learn and grow
-- Keep discussions professional and on-topic
+## Código de conducta
 
-## Getting Started
+- Ser respetuoso e inclusivo
+- Dar retroalimentación constructiva
+- Ayudar a otros a aprender
+- Mantener discusiones profesionales y en tema
 
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/Toast-Club-PMV.git
-   cd Toast-Club-PMV
-   ```
-3. **Add upstream remote**:
-   ```bash
-   git remote add upstream https://github.com/panconlocro/Toast-Club-PMV.git
-   ```
-4. **Set up development environment** (see [SETUP_GUIDE.md](SETUP_GUIDE.md))
+## Primeros pasos
 
-## Development Workflow
+1) **Fork del repositorio** en GitHub
 
-### 1. Create a feature branch
+2) **Clona tu fork** localmente:
+
 ```bash
-git checkout -b feature/your-feature-name
+git clone https://github.com/YOUR_USERNAME/Toast-Club-PMV.git
+cd Toast-Club-PMV
 ```
 
-Use prefixes:
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation changes
-- `refactor/` - Code refactoring
-- `test/` - Test additions or changes
+3) **Agregar remote upstream**:
 
-### 2. Make your changes
-- Follow coding standards (see below)
-- Write tests for new functionality
-- Update documentation as needed
+```bash
+git remote add upstream https://github.com/panconlocro/Toast-Club-PMV.git
+```
 
-### 3. Commit your changes
+4) **Configurar entorno de desarrollo** (ver [SETUP_GUIDE.md](SETUP_GUIDE.md))
+
+## Flujo de trabajo
+
+### 1) Crear una rama
+
+```bash
+git checkout -b feature/tu-feature
+```
+
+Prefijos recomendados:
+
+- `feature/` – nuevas funcionalidades
+- `fix/` – errores
+- `docs/` – cambios de documentación
+- `refactor/` – refactorizaciones
+- `test/` – pruebas
+
+### 2) Hacer cambios
+
+- Seguir los estándares (ver abajo)
+- Escribir pruebas si aplica
+- Actualizar documentación si aplica
+
+### 3) Commit
+
 ```bash
 git add .
-git commit -m "Brief description of changes"
+git commit -m "Descripción breve de los cambios"
 ```
 
-Commit message format:
+Formato sugerido:
+
 ```
-<type>: <subject>
+<tipo>: <asunto>
 
-<body (optional)>
+<cuerpo (opcional)>
 
-<footer (optional)>
+<pie (opcional)>
 ```
 
-Examples:
-- `feat: Add audio file upload validation`
-- `fix: Correct state machine transition validation`
-- `docs: Update API documentation for survey endpoints`
+Ejemplos:
 
-### 4. Keep your fork updated
+- `feat: Agregar validación de subida de audio`
+- `fix: Corregir validación de transiciones de estado`
+- `docs: Actualizar documentación de endpoints`
+
+### 4) Mantener el fork actualizado
+
 ```bash
 git fetch upstream
 git rebase upstream/main
 ```
 
-### 5. Push to your fork
+### 5) Push
+
 ```bash
-git push origin feature/your-feature-name
+git push origin feature/tu-feature
 ```
 
-### 6. Create a Pull Request
-- Go to the original repository on GitHub
-- Click "New Pull Request"
-- Select your fork and branch
-- Fill out the PR template
+### 6) Crear un PR (Pull Request)
 
-## Coding Standards
+- Ir al repo original en GitHub
+- Clic en “Nuevo Pull Request”
+- Seleccionar tu fork y rama
+- Completar la plantilla del PR
 
-### Python (Backend)
+## Estándares de código
 
-- **Style Guide**: Follow PEP 8
-- **Type Hints**: Use type hints for function parameters and return values
-- **Docstrings**: Use docstrings for classes and functions
-- **Imports**: Group imports (standard library, third-party, local)
+### Python (backend)
 
-Example:
+- **Guía de estilo**: seguir PEP 8
+- **Anotaciones de tipo**: usar anotaciones de tipo cuando sea posible
+- **Docstrings**: usar docstrings en clases/funciones
+- **Importaciones**: agrupar importaciones (stdlib, terceros, locales)
+
+Ejemplo:
+
 ```python
 from typing import Optional
 from fastapi import APIRouter, Depends
@@ -106,28 +122,20 @@ def get_session_by_id(
     session_id: int,
     db: Session = Depends(get_db)
 ) -> Optional[SessionModel]:
-    """
-    Get a session by its ID.
-    
-    Args:
-        session_id: The session ID to look up
-        db: Database session dependency
-        
-    Returns:
-        Session model if found, None otherwise
-    """
+  """Obtener una sesión por su ID."""
     return db.query(SessionModel).filter(SessionModel.id == session_id).first()
 ```
 
-### JavaScript/React (Frontend)
+### JavaScript/React (frontend)
 
-- **Style Guide**: Use consistent formatting
-- **Components**: Functional components with hooks
-- **Props**: Destructure props in component parameters
-- **State**: Use useState and useEffect appropriately
-- **Naming**: PascalCase for components, camelCase for functions/variables
+- **Formato**: consistente
+- **Componentes**: funcionales + hooks
+- **Props**: desestructurar props en parámetros
+- **State**: usar `useState`/`useEffect` correctamente
+- **Naming**: PascalCase para componentes, camelCase para funciones/variables
 
-Example:
+Ejemplo:
+
 ```javascript
 function SessionForm({ onSessionCreated }) {
   const [formData, setFormData] = useState({
@@ -137,40 +145,40 @@ function SessionForm({ onSessionCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle submission
+    // Manejar el envío
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* Form content */}
+      {/* Contenido del formulario */}
     </form>
   );
 }
 ```
 
-### General Principles
+### Principios generales
 
-- **DRY**: Don't Repeat Yourself
-- **KISS**: Keep It Simple, Stupid
-- **YAGNI**: You Aren't Gonna Need It
-- **Separation of Concerns**: Keep logic organized and modular
+- **DRY**: no repetirse
+- **KISS**: mantenerlo simple
+- **YAGNI**: no agregar funcionalidad “por si acaso”
+- **Separación de responsabilidades**: modularidad y claridad
 
-## Testing Guidelines
+## Guía de pruebas
 
-### Backend Tests
+### Pruebas del backend
 
-Use pytest for backend tests:
+Se usa pytest:
 
 ```python
 def test_valid_state_transition():
-    """Test that valid state transitions are allowed."""
+  """Prueba que las transiciones de estado válidas están permitidas."""
     assert SessionStateMachine.can_transition(
         SessionState.CREATED,
         SessionState.READY_TO_START
     )
 
 def test_invalid_state_transition():
-    """Test that invalid state transitions are rejected."""
+  """Prueba que las transiciones de estado inválidas se rechazan."""
     with pytest.raises(ValueError):
         SessionStateMachine.validate_transition(
             SessionState.CREATED,
@@ -178,95 +186,93 @@ def test_invalid_state_transition():
         )
 ```
 
-### Test Coverage
+### Cobertura
 
-- Aim for >80% code coverage
-- Test happy paths and edge cases
-- Test error conditions
-- Mock external dependencies
+- Apuntar a >80% en lógica crítica
+- Probar casos felices y bordes
+- Probar errores
+- Simular dependencias externas
 
-### Running Tests
+### Ejecutar pruebas
 
 ```bash
-# Backend tests
 cd backend
 pytest
 
-# With coverage
+# Con cobertura
 pytest --cov=app tests/
 
-# Specific test file
+# Un archivo
 pytest tests/test_state_machine.py -v
 ```
 
-## Pull Request Process
+## Proceso de PR (Pull Request)
 
-### Before Submitting
+### Antes de enviar
 
-- [ ] Tests pass locally
-- [ ] Code follows style guidelines
-- [ ] Documentation is updated
-- [ ] Commit messages are clear
-- [ ] No unnecessary files committed
-- [ ] Branch is up-to-date with main
+- [ ] Pruebas pasan localmente
+- [ ] Código sigue estándares
+- [ ] Documentación actualizada
+- [ ] Commits claros
+- [ ] No se incluyen archivos innecesarios
+- [ ] Rama actualizada con `main`
 
-### PR Template
+### Plantilla sugerida
 
-When creating a PR, include:
+1. **Descripción**: qué cambió y por qué
+2. **Incidencias relacionadas**: enlaces
+3. **Pruebas**: cómo probar
+4. **Capturas de pantalla**: si hay cambios en la UI
+5. **Lista de verificación**: confirmar requisitos
 
-1. **Description**: What changes were made and why
-2. **Related Issues**: Link to related issues
-3. **Testing**: How to test the changes
-4. **Screenshots**: For UI changes
-5. **Checklist**: Confirm all requirements are met
+### Revisión
 
-### Review Process
+1. Validaciones automáticas pasan (si existen)
+2. Aprobación de al menos un mantenedor
+3. Atender retroalimentación
+4. Hacer “squash” de commits si se solicita
+5. Mantener historial limpio
 
-1. Automated checks must pass (if configured)
-2. At least one maintainer approval required
-3. Address review feedback promptly
-4. Squash commits if requested
-5. Maintain clean git history
+## Qué contribuir
 
-## What to Contribute
+### “Buenas primeras incidencias”
 
-### Good First Issues
+Buscar incidencias con la etiqueta `good-first-issue`:
 
-Look for issues labeled `good-first-issue`:
-- Documentation improvements
-- Simple bug fixes
-- Test additions
-- Code cleanup
+- Mejoras de documentación
+- Errores simples
+- Pruebas
+- Limpieza de código
 
-### Areas for Contribution
+### Áreas
 
-- **Backend**: API endpoints, database models, business logic
-- **Frontend**: UI components, pages, user experience
-- **Testing**: Unit tests, integration tests
-- **Documentation**: API docs, guides, examples
-- **DevOps**: Docker improvements, CI/CD
+- **Backend**: endpoints, modelos, lógica
+- **Frontend**: UI/UX
+- **Pruebas**: unitarias/integración
+- **Documentación**: guías/ejemplos
+- **DevOps**: Docker/CI
 
-### Out of Scope for PMV
+### Fuera de alcance del PMV
 
-Remember, this is a PMV (Minimum Viable Product). The following are **not** in scope:
-- Payment/subscription systems
-- Multi-tenancy features
-- Advanced analytics/dashboards
-- AI/ML integration
-- Actual VR application (placeholder only)
+Recordatorio: esto es un PMV. Fuera de alcance:
 
-Focus on core functionality for validating the concept.
+- Pagos/suscripciones
+- Multi-tenancy
+- Analítica avanzada
+- IA/ML
+- Aplicación RV “final” (marcador de posición)
 
-## Questions?
+Enfocarse en la funcionalidad central para validar el concepto.
 
-If you have questions:
-1. Check existing documentation
-2. Search closed issues
-3. Open a new issue with the `question` label
-4. Be specific and provide context
+## ¿Dudas?
 
-## License
+1) Revisar documentación
+2) Buscar incidencias cerradas
+3) Abrir una incidencia con la etiqueta `question`
+4) Dar contexto y pasos para reproducir
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+## Licencia
 
-Thank you for contributing to Toast Club PMV! 🎉
+Al contribuir, aceptas que tus contribuciones se licencian bajo MIT.
+
+Gracias por contribuir a Toast Club PMV.

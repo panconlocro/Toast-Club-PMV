@@ -1,81 +1,92 @@
-# Toast Club PMV - Overview
+# Toast Club PMV – Visión general
 
-## What is Toast Club?
+## ¿Qué es Toast Club?
 
-Toast Club is a Virtual Reality (VR) training platform designed to help users improve their communication skills. The PMV (Minimum Viable Product) focuses on validating the core concept: collecting audio recordings and user feedback from training sessions.
+Toast Club es una plataforma de entrenamiento en Realidad Virtual (RV) diseñada para ayudar a las personas a mejorar sus habilidades de comunicación.
+Este PMV (Producto Mínimo Viable) se centra en validar el concepto base: recolectar grabaciones de audio de sesiones de entrenamiento y retroalimentación del usuario mediante encuestas.
 
-## Purpose of the PMV
+## Objetivo del PMV
 
-The primary goals of this PMV are to:
-- Validate the concept of VR-based communication training
-- Collect audio recordings from training sessions
-- Gather user feedback through surveys
-- Build a simple dataset for analysis
+Los objetivos principales de este PMV son:
 
-## What the PMV is NOT
+- Validar el concepto de entrenamiento de comunicación basado en RV
+- Recolectar grabaciones de audio de sesiones
+- Recolectar retroalimentación mediante encuestas
+- Construir un dataset simple para análisis
 
-This PMV explicitly excludes:
-- Payment or subscription systems
-- Multi-tenancy features
-- Complex dashboards or analytics
-- AI/ML integration
-- Real VR application (placeholder only)
-- Production-grade audio storage
+## Qué NO es el PMV
 
-## Target Users
+Este PMV explícitamente excluye:
 
-### IMPULSADOR (Facilitator)
-- Creates training sessions for participants
-- Manages the session workflow
-- Collects recordings and surveys
+- Pagos o suscripciones
+- Multi-tenancy
+- Dashboards complejos o analítica avanzada
+- Integraciones de IA/ML (por ejemplo, análisis automático del habla)
+- Una aplicación RV “final” (Unity es parte del trabajo externo al PMV web)
 
-### ANALISTA (Analyst)
-- Views all training session data
-- Exports datasets for analysis
-- Monitors platform usage
+Nota: el PMV **sí** incluye almacenamiento de audio privado mediante Cloudflare R2 (S3 compatible) y URLs presignadas para descarga (rol ANALISTA).
 
-## Session Workflow
+## Usuarios objetivo
 
-1. **Created**: Session is initialized with participant data
-2. **Ready to Start**: Session is prepared for training
-3. **Running**: Training in progress, recording can happen
-4. **Audio Uploaded**: Recording has been submitted
-5. **Survey Pending**: Waiting for participant feedback
-6. **Completed**: Session finished with all data collected
+### IMPULSADOR (facilitador)
 
-## Technology Stack
+- Crea sesiones de entrenamiento para participantes
+- Administra el flujo (estados) de la sesión
+- Coordina el proceso de grabación (Unity sube el audio) y encuesta
+
+### ANALISTA (analista)
+
+- Visualiza los datos de las sesiones
+- Exporta datasets para análisis
+- Descarga audios mediante URLs presignadas
+
+## Flujo de sesión (máquina de estados)
+
+El backend usa el campo `estado` con una máquina de estados.
+
+1. **Creada** (`created`): sesión inicializada con datos del participante
+2. **Lista para iniciar** (`ready_to_start`): preparada para entrenamiento
+3. **En curso** (`running`): entrenamiento en progreso
+4. **Audio cargado** (`audio_uploaded`): Unity subió el audio al backend
+5. **Encuesta pendiente** (`survey_pending`): esperando retroalimentación
+6. **Completada** (`completed`): sesión finalizada con datos completos
+
+## Stack tecnológico
 
 - **Backend**: FastAPI + SQLAlchemy + PostgreSQL
-- **Frontend**: React (Vite) + Vanilla CSS
-- **Infrastructure**: Docker Compose
-- **Authentication**: JWT tokens
+- **Frontend**: React (Vite) + CSS
+- **Infraestructura**: Docker Compose
+- **Autenticación**: JWT
 
-## Data Model
+## Modelo de datos
 
-### Session
-- Participant information (name, age, email)
-- Selected training text
-- Current state in workflow
-- Unique session code
+### Sesión (Session)
 
-### Recording
-- Audio file reference
-- Duration and format
-- Upload metadata
+- Información del participante (nombre, edad aproximada, email opcional)
+- Texto seleccionado para entrenamiento
+- Estado del flujo
+- Código único `session_code`
 
-### Survey
-- Participant feedback responses
-- JSON format for flexibility
+### Grabación (Recording)
 
-### User
-- Email and password
-- Role (IMPULSADOR or ANALISTA)
+- Referencia al audio (se guarda una *key* del objeto en R2)
+- Duración y formato
+- Metadatos de carga
 
-## Future Enhancements (Post-PMV)
+### Encuesta (Survey)
 
-- Integration with actual VR application
-- Cloud storage for audio files (S3, etc.)
-- Advanced analytics dashboard
-- AI-powered speech analysis
-- Multi-language support
-- Mobile app integration
+- Respuestas del participante
+- JSON para flexibilidad
+
+### Usuario (User)
+
+- Email y password
+- Rol (`IMPULSADOR` o `ANALISTA`)
+
+## Mejoras futuras (post-PMV)
+
+- Integración más completa con Unity (RV)
+- Analítica avanzada
+- Análisis de audio / scoring
+- Soporte multi-idioma
+- App móvil
