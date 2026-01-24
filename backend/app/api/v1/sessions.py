@@ -1,13 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+import json
 from ...db.session import get_db
 from ...models.session import Session as SessionModel
 from ...core.state_machine import SessionState, SessionStateMachine
 from ...core.time import to_local_iso
+from .texts import get_text_by_id
 
 router = APIRouter()
+
+
+def parse_texto_seleccionado(value) -> Dict[str, Any]:
+    """Parse texto_seleccionado - handles both dict and JSON string from DB."""
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return {"raw": value}
+    return {}
 
 
 class ParticipantData(BaseModel):
@@ -20,7 +34,7 @@ class ParticipantData(BaseModel):
 class SessionCreate(BaseModel):
     """Schema for creating a session."""
     datos_participante: ParticipantData
-    texto_seleccionado: str = Field(..., min_length=1)
+    texto_seleccionado_id: str = Field(..., min_length=1, description="ID of the text to use for this session") 
 
 
 class SessionResponse(BaseModel):
@@ -28,7 +42,7 @@ class SessionResponse(BaseModel):
     id: int
     session_code: str
     datos_participante: Dict[str, Any]
-    texto_seleccionado: str
+    texto_seleccionado: Dict[str, Any]  # Full text object {Id, Title, Pages, Tags}
     estado: str
     created_at: str
     updated_at: Optional[str] = None
@@ -45,10 +59,18 @@ class StateUpdateRequest(BaseModel):
 @router.post("/sessions", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 def create_session(session_data: SessionCreate, db: Session = Depends(get_db)):
     """Create a new training session."""
-    # Create new session
+    # Look up the full text by ID
+    texto = get_text_by_id(session_data.texto_seleccionado_id)
+    if not texto:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Text with Id '{session_data.texto_seleccionado_id}' not found"
+        )
+    
+    # Create new session with the full text object
     new_session = SessionModel(
         datos_participante=session_data.datos_participante.model_dump(),
-        texto_seleccionado=session_data.texto_seleccionado,
+        texto_seleccionado=texto,  # Store the full text object as JSON
         estado=SessionState.CREATED.value
     )
     
@@ -60,7 +82,7 @@ def create_session(session_data: SessionCreate, db: Session = Depends(get_db)):
         id=new_session.id,
         session_code=new_session.session_code,
         datos_participante=new_session.datos_participante,
-        texto_seleccionado=new_session.texto_seleccionado,
+        texto_seleccionado=parse_texto_seleccionado(new_session.texto_seleccionado),
         estado=new_session.estado,
         created_at=to_local_iso(new_session.created_at) or "",
         updated_at=to_local_iso(new_session.updated_at)
@@ -82,7 +104,7 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
         id=session.id,
         session_code=session.session_code,
         datos_participante=session.datos_participante,
-        texto_seleccionado=session.texto_seleccionado,
+        texto_seleccionado=parse_texto_seleccionado(session.texto_seleccionado),
         estado=session.estado,
         created_at=to_local_iso(session.created_at) or "",
         updated_at=to_local_iso(session.updated_at)
@@ -103,7 +125,7 @@ def get_session_by_code(session_code: str, db: Session = Depends(get_db)):
         id=session.id,
         session_code=session.session_code,
         datos_participante=session.datos_participante,
-        texto_seleccionado=session.texto_seleccionado,
+        texto_seleccionado=parse_texto_seleccionado(session.texto_seleccionado),
         estado=session.estado,
         created_at=to_local_iso(session.created_at) or "",
         updated_at=to_local_iso(session.updated_at)
@@ -145,7 +167,7 @@ def update_session_state(
         id=session.id,
         session_code=session.session_code,
         datos_participante=session.datos_participante,
-        texto_seleccionado=session.texto_seleccionado,
+        texto_seleccionado=parse_texto_seleccionado(session.texto_seleccionado),
         estado=session.estado,
         created_at=to_local_iso(session.created_at) or "",
         updated_at=to_local_iso(session.updated_at)
