@@ -19,6 +19,18 @@ export const authAPI = {
   }
 }
 
+export const textsAPI = {
+  getTexts: async () => {
+    const response = await apiClient.get(`${API_V1}/texts`)
+    return response.data
+  },
+  
+  getTextById: async (textId) => {
+    const response = await apiClient.get(`${API_V1}/texts/${textId}`)
+    return response.data
+  }
+}
+
 export const sessionsAPI = {
   createSession: async (sessionData) => {
     const response = await apiClient.post(`${API_V1}/sessions`, sessionData)
