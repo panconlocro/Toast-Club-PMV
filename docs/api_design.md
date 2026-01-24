@@ -119,6 +119,87 @@ Logout basado en token. El backend devuelve un mensaje; el cliente debe descarta
 
 ---
 
+## Endpoints de textos de entrenamiento
+
+Los textos de entrenamiento se almacenan en un archivo JSON en el backend. Estos endpoints permiten listar y obtener los textos disponibles.
+
+### GET `/texts`
+
+Devuelve la lista de todos los textos disponibles para entrenamiento (sin incluir las páginas completas).
+
+Respuesta:
+
+```json
+{
+  "texts": [
+    {
+      "Id": "20251225202648_0001",
+      "Title": "La Tiranía del Embudo: Cuando el Especialismo nos convierte en Expertos Incompetentes",
+      "Tags": {
+        "audiencia": "investigadores y profesionales técnicos",
+        "contexto": "academia e industria",
+        "duracion_aprox": "6-7 min",
+        "intencion": "promover integración de saberes",
+        "referentes": "crítica al especialismo",
+        "subtema": "interdisciplinariedad",
+        "tema": "especialización",
+        "tono": "combativo"
+      }
+    }
+  ],
+  "total": 1
+}
+```
+
+### GET `/texts/{text_id}`
+
+Devuelve un texto específico por su ID, incluyendo el array completo de páginas.
+
+- `text_id`: string (ej. `"20251225202648_0001"`)
+
+Respuesta:
+
+```json
+{
+  "Id": "20251225202648_0001",
+  "Title": "La Tiranía del Embudo: Cuando el Especialismo nos convierte en Expertos Incompetentes",
+  "Pages": [
+    [
+      "",
+      "",
+      "La Tiranía del Embudo: Cuando el",
+      "Especialismo nos convierte en Expertos",
+      "Incompetentes"
+    ],
+    [
+      "Colegas, estudiantes:",
+      "",
+      "Hay una frase cruel, pero demoledora, que",
+      "ronda los pasillos de la academia..."
+    ]
+  ],
+  "Tags": {
+    "audiencia": "investigadores y profesionales técnicos",
+    "duracion_aprox": "6-7 min",
+    "tema": "especialización",
+    "tono": "combativo"
+  }
+}
+```
+
+Notas:
+
+- `Pages` es un array de páginas, donde cada página es un array de líneas de texto.
+- Este es el formato que Unity debe usar para mostrar el texto al participante.
+
+Si el texto no existe:
+
+```json
+{ "detail": "Text with Id 'xxx' not found" }
+```
+
+---
+
 ## Endpoints de sesión
 
 ### POST `/sessions`
@@ -134,9 +215,15 @@ Solicitud:
     "edad_aproximada": 25,
     "email_opcional": "juan@example.com"
   },
-  "texto_seleccionado": "El zorro rápido salta sobre el perro perezoso."
+  "texto_seleccionado_id": "20251225202648_0001"
 }
 ```
+
+Notas:
+
+- `texto_seleccionado_id`: ID del texto de entrenamiento (obtenido de `GET /texts`).
+- El backend busca el texto completo y lo almacena en la sesión.
+- Si el ID no existe, devuelve `404`.
 
 Respuesta (`SessionResponse`):
 
@@ -149,11 +236,17 @@ Respuesta (`SessionResponse`):
     "edad_aproximada": 25,
     "email_opcional": "juan@example.com"
   },
-  "texto_seleccionado": "El zorro rápido salta sobre el perro perezoso.",
+  "texto_seleccionado": {
+    "Id": "20251225202648_0001",
+    "Title": "La Tiranía del Embudo...",
+    "Pages": [["línea1", "línea2"], ["línea3", "línea4"]],
+    "Tags": { "tema": "especialización", "duracion_aprox": "6-7 min" }
+  },
   "estado": "created",
   "created_at": "2026-01-08T10:30:00.000000",
   "updated_at": "2026-01-08T10:30:00.000000"
 }
+```
 ```
 
 ### GET `/sessions/{session_id}`
