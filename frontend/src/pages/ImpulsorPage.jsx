@@ -152,7 +152,7 @@ function ImpulsorPage() {
           <p><strong>State:</strong> {currentSession.estado}</p>
           <p><strong>Training Text:</strong></p>
           <p style={{backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px'}}>
-            {currentSession.texto_seleccionado}
+            {currentSession.texto_seleccionado?.Title || 'No text selected'}
           </p>
 
           <div style={{marginTop: '20px'}}>
