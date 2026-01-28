@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Request
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from pathlib import Path
@@ -32,6 +32,12 @@ class TextsListResponse(BaseModel):
     total: int
 
 
+class TagsIndexResponse(BaseModel):
+    """Response for available tag keys and values."""
+    keys: List[str]
+    values: Dict[str, List[str]]
+
+
 def load_texts() -> List[Dict[str, Any]]:
     """Load all texts from the JSON file."""
     if not TEXTS_FILE.exists():
@@ -52,8 +58,25 @@ def get_text_by_id(text_id: str) -> Optional[Dict[str, Any]]:
     return next((t for t in texts if t["Id"] == text_id), None)
 
 
+def _normalize_tag_value(value: Any) -> str:
+    return str(value).strip().casefold()
+
+
+def _matches_tag_filters(text: Dict[str, Any], filters: Dict[str, str]) -> bool:
+    if not filters:
+        return True
+
+    tags = text.get("Tags", {})
+    for key, expected in filters.items():
+        if key not in tags:
+            return False
+        if _normalize_tag_value(tags.get(key, "")) != expected:
+            return False
+    return True
+
+
 @router.get("/texts", response_model=TextsListResponse)
-def list_texts():
+def list_texts(request: Request):
     """
     List all available training texts.
     Returns summaries (Id, Title, Tags) without the full Pages array.
@@ -66,16 +89,55 @@ def list_texts():
             detail=str(e)
         )
     
+    filters = {
+        key: _normalize_tag_value(value)
+        for key, value in request.query_params.items()
+    }
+
+    filtered_texts = [t for t in texts if _matches_tag_filters(t, filters)]
+
     summaries = [
         TextSummary(
             Id=t["Id"],
             Title=t["Title"],
             Tags=t.get("Tags", {})
         )
-        for t in texts
+        for t in filtered_texts
     ]
     
     return TextsListResponse(texts=summaries, total=len(summaries))
+
+
+@router.get("/texts/tags", response_model=TagsIndexResponse)
+def list_text_tags():
+    """List available tag keys and their unique values."""
+    try:
+        texts = load_texts()
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+    values_map: Dict[str, Dict[str, str]] = {}
+    for text in texts:
+        tags = text.get("Tags", {})
+        for key, value in tags.items():
+            key_values = values_map.setdefault(key, {})
+            normalized_value = _normalize_tag_value(value)
+            if normalized_value not in key_values:
+                key_values[normalized_value] = str(value).strip()
+
+    keys = sorted(values_map.keys())
+    values = {
+        key: [
+            values_map[key][norm_value]
+            for norm_value in sorted(values_map[key].keys())
+        ]
+        for key in keys
+    }
+
+    return TagsIndexResponse(keys=keys, values=values)
 
 
 @router.get("/texts/{text_id}", response_model=TextFull)
