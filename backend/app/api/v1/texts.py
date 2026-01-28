@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 import json
+from ...core.text_normalization import normalize_pages
 
 router = APIRouter()
 
@@ -96,9 +97,11 @@ def get_text(text_id: str):
             detail=f"Text with Id '{text_id}' not found"
         )
     
+    normalized_pages = normalize_pages(text.get("Pages", []), start_page_index=2)
+
     return TextFull(
         Id=text["Id"],
         Title=text["Title"],
-        Pages=text["Pages"],
+        Pages=normalized_pages,
         Tags=text.get("Tags", {})
     )

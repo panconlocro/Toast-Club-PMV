@@ -7,6 +7,7 @@ from ...db.session import get_db
 from ...models.session import Session as SessionModel
 from ...core.state_machine import SessionState, SessionStateMachine
 from ...core.time import to_local_iso
+from ...core.text_normalization import normalize_text_object
 from .texts import get_text_by_id
 
 router = APIRouter()
@@ -67,10 +68,13 @@ def create_session(session_data: SessionCreate, db: Session = Depends(get_db)):
             detail=f"Text with Id '{session_data.texto_seleccionado_id}' not found"
         )
     
+    # Normalize text for RV projection safety
+    texto_normalizado = normalize_text_object(texto)
+
     # Create new session with the full text object
     new_session = SessionModel(
         datos_participante=session_data.datos_participante.model_dump(),
-        texto_seleccionado=texto,  # Store the full text object as JSON
+        texto_seleccionado=texto_normalizado,  # Store the normalized text object as JSON
         estado=SessionState.CREATED.value
     )
     
@@ -82,7 +86,9 @@ def create_session(session_data: SessionCreate, db: Session = Depends(get_db)):
         id=new_session.id,
         session_code=new_session.session_code,
         datos_participante=new_session.datos_participante,
-        texto_seleccionado=parse_texto_seleccionado(new_session.texto_seleccionado),
+        texto_seleccionado=normalize_text_object(
+            parse_texto_seleccionado(new_session.texto_seleccionado)
+        ),
         estado=new_session.estado,
         created_at=to_local_iso(new_session.created_at) or "",
         updated_at=to_local_iso(new_session.updated_at)
@@ -104,7 +110,9 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
         id=session.id,
         session_code=session.session_code,
         datos_participante=session.datos_participante,
-        texto_seleccionado=parse_texto_seleccionado(session.texto_seleccionado),
+        texto_seleccionado=normalize_text_object(
+            parse_texto_seleccionado(session.texto_seleccionado)
+        ),
         estado=session.estado,
         created_at=to_local_iso(session.created_at) or "",
         updated_at=to_local_iso(session.updated_at)
@@ -125,7 +133,9 @@ def get_session_by_code(session_code: str, db: Session = Depends(get_db)):
         id=session.id,
         session_code=session.session_code,
         datos_participante=session.datos_participante,
-        texto_seleccionado=parse_texto_seleccionado(session.texto_seleccionado),
+        texto_seleccionado=normalize_text_object(
+            parse_texto_seleccionado(session.texto_seleccionado)
+        ),
         estado=session.estado,
         created_at=to_local_iso(session.created_at) or "",
         updated_at=to_local_iso(session.updated_at)
@@ -167,7 +177,9 @@ def update_session_state(
         id=session.id,
         session_code=session.session_code,
         datos_participante=session.datos_participante,
-        texto_seleccionado=parse_texto_seleccionado(session.texto_seleccionado),
+        texto_seleccionado=normalize_text_object(
+            parse_texto_seleccionado(session.texto_seleccionado)
+        ),
         estado=session.estado,
         created_at=to_local_iso(session.created_at) or "",
         updated_at=to_local_iso(session.updated_at)
