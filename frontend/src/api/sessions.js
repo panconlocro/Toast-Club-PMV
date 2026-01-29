@@ -20,8 +20,13 @@ export const authAPI = {
 }
 
 export const textsAPI = {
-  getTexts: async () => {
-    const response = await apiClient.get(`${API_V1}/texts`)
+  getTexts: async (filters = {}) => {
+    const response = await apiClient.get(`${API_V1}/texts`, { params: filters })
+    return response.data
+  },
+
+  getTags: async () => {
+    const response = await apiClient.get(`${API_V1}/texts/tags`)
     return response.data
   },
   

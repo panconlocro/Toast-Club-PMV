@@ -9,15 +9,55 @@ function SessionForm({ onSessionCreated }) {
     texto_seleccionado_id: ''
   })
   const [availableTexts, setAvailableTexts] = useState([])
+  const [availableTags, setAvailableTags] = useState({ keys: [], values: {} })
+  const [tagFilters, setTagFilters] = useState({
+    tema: '',
+    tono: '',
+    audiencia: '',
+    duracion_aprox: ''
+  })
+  const [searchQuery, setSearchQuery] = useState('')
   const [textsLoading, setTextsLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const normalizeText = (value) => value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
   // Fetch available texts on mount
   useEffect(() => {
-    const fetchTexts = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await textsAPI.getTexts()
+        const [textsResponse, tagsResponse] = await Promise.all([
+          textsAPI.getTexts(),
+          textsAPI.getTags()
+        ])
+        setAvailableTexts(textsResponse.texts || [])
+        setAvailableTags(tagsResponse || { keys: [], values: {} })
+      } catch (err) {
+        console.error('Failed to fetch texts:', err)
+        setError('Failed to load available texts')
+      } finally {
+        setTextsLoading(false)
+      }
+    }
+    fetchInitialData()
+  }, [])
+
+  // Fetch texts when tag filters change
+  useEffect(() => {
+    const fetchFilteredTexts = async () => {
+      setTextsLoading(true)
+      setError('')
+
+      const filters = Object.fromEntries(
+        Object.entries(tagFilters).filter(([, value]) => value)
+      )
+
+      try {
+        const response = await textsAPI.getTexts(filters)
         setAvailableTexts(response.texts || [])
       } catch (err) {
         console.error('Failed to fetch texts:', err)
@@ -26,12 +66,21 @@ function SessionForm({ onSessionCreated }) {
         setTextsLoading(false)
       }
     }
-    fetchTexts()
-  }, [])
+
+    fetchFilteredTexts()
+  }, [tagFilters])
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleTagFilterChange = (e) => {
+    const { name, value } = e.target
+    setTagFilters(prev => ({
       ...prev,
       [name]: value
     }))
@@ -69,8 +118,28 @@ function SessionForm({ onSessionCreated }) {
     }
   }
 
+  // Filter by search query on the frontend
+  const normalizedQuery = normalizeText(searchQuery.trim())
+  const filteredTexts = availableTexts.filter(text =>
+    normalizeText(text.Title).includes(normalizedQuery)
+  )
+
+  // Keep selection in sync with filtered results
+  useEffect(() => {
+    if (!formData.texto_seleccionado_id) {
+      return
+    }
+    const exists = filteredTexts.some(t => t.Id === formData.texto_seleccionado_id)
+    if (!exists) {
+      setFormData(prev => ({
+        ...prev,
+        texto_seleccionado_id: ''
+      }))
+    }
+  }, [filteredTexts, formData.texto_seleccionado_id])
+
   // Get the selected text's tags for preview
-  const selectedText = availableTexts.find(t => t.Id === formData.texto_seleccionado_id)
+  const selectedText = filteredTexts.find(t => t.Id === formData.texto_seleccionado_id)
 
   return (
     <div className="card">
@@ -116,25 +185,105 @@ function SessionForm({ onSessionCreated }) {
           />
         </div>
 
+        {(availableTags.keys || []).length > 0 && (
+          <div className="form-group">
+            <label>Filter by tags</label>
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              {availableTags.keys.includes('tema') && (
+                <select
+                  name="tema"
+                  value={tagFilters.tema}
+                  onChange={handleTagFilterChange}
+                >
+                  <option value="">Topic (any)</option>
+                  {(availableTags.values?.tema || []).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {availableTags.keys.includes('tono') && (
+                <select
+                  name="tono"
+                  value={tagFilters.tono}
+                  onChange={handleTagFilterChange}
+                >
+                  <option value="">Tone (any)</option>
+                  {(availableTags.values?.tono || []).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {availableTags.keys.includes('audiencia') && (
+                <select
+                  name="audiencia"
+                  value={tagFilters.audiencia}
+                  onChange={handleTagFilterChange}
+                >
+                  <option value="">Audience (any)</option>
+                  {(availableTags.values?.audiencia || []).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {availableTags.keys.includes('duracion_aprox') && (
+                <select
+                  name="duracion_aprox"
+                  value={tagFilters.duracion_aprox}
+                  onChange={handleTagFilterChange}
+                >
+                  <option value="">Duration (any)</option>
+                  {(availableTags.values?.duracion_aprox || []).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="text_search">Search by title</label>
+          <input
+            id="text_search"
+            name="text_search"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Type to search..."
+          />
+        </div>
+
         <div className="form-group">
           <label htmlFor="texto_seleccionado_id">Training Text *</label>
           {textsLoading ? (
             <p>Loading available texts...</p>
           ) : (
-            <select
-              id="texto_seleccionado_id"
-              name="texto_seleccionado_id"
-              value={formData.texto_seleccionado_id}
-              onChange={handleChange}
-              required
-            >
-              <option value="">-- Select a text --</option>
-              {availableTexts.map((text) => (
-                <option key={text.Id} value={text.Id}>
-                  {text.Title}
-                </option>
-              ))}
-            </select>
+            filteredTexts.length > 0 ? (
+              <select
+                id="texto_seleccionado_id"
+                name="texto_seleccionado_id"
+                value={formData.texto_seleccionado_id}
+                onChange={handleChange}
+                required
+              >
+                <option value="">-- Select a text --</option>
+                {filteredTexts.map((text) => (
+                  <option key={text.Id} value={text.Id}>
+                    {text.Title}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p>No texts match your filters</p>
+            )
           )}
         </div>
 
