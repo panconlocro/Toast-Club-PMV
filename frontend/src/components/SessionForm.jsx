@@ -14,7 +14,11 @@ function SessionForm({ onSessionCreated }) {
     tema: '',
     tono: '',
     audiencia: '',
-    duracion_aprox: ''
+    duracion_aprox: '',
+    contexto: '',
+    intencion: '',
+    referentes: '',
+    subtema: ''
   })
   const [searchQuery, setSearchQuery] = useState('')
   const [textsLoading, setTextsLoading] = useState(true)
@@ -118,6 +122,17 @@ function SessionForm({ onSessionCreated }) {
     }
   }
 
+  const tagConfigs = [
+    { key: 'tema', label: 'Tema' },
+    { key: 'tono', label: 'Tono' },
+    { key: 'audiencia', label: 'Audiencia' },
+    { key: 'duracion_aprox', label: 'Duración aprox.' },
+    { key: 'contexto', label: 'Contexto' },
+    { key: 'intencion', label: 'Intención' },
+    { key: 'referentes', label: 'Referentes' },
+    { key: 'subtema', label: 'Subtema' }
+  ]
+
   // Filter by search query on the frontend
   const normalizedQuery = normalizeText(searchQuery.trim())
   const filteredTexts = availableTexts.filter(text =>
@@ -187,64 +202,34 @@ function SessionForm({ onSessionCreated }) {
 
         {(availableTags.keys || []).length > 0 && (
           <div className="form-group">
-            <label>Filter by tags</label>
-            <div style={{ display: 'grid', gap: '0.5rem' }}>
-              {availableTags.keys.includes('tema') && (
-                <select
-                  name="tema"
-                  value={tagFilters.tema}
-                  onChange={handleTagFilterChange}
-                >
-                  <option value="">Topic (any)</option>
-                  {(availableTags.values?.tema || []).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {availableTags.keys.includes('tono') && (
-                <select
-                  name="tono"
-                  value={tagFilters.tono}
-                  onChange={handleTagFilterChange}
-                >
-                  <option value="">Tone (any)</option>
-                  {(availableTags.values?.tono || []).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {availableTags.keys.includes('audiencia') && (
-                <select
-                  name="audiencia"
-                  value={tagFilters.audiencia}
-                  onChange={handleTagFilterChange}
-                >
-                  <option value="">Audience (any)</option>
-                  {(availableTags.values?.audiencia || []).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {availableTags.keys.includes('duracion_aprox') && (
-                <select
-                  name="duracion_aprox"
-                  value={tagFilters.duracion_aprox}
-                  onChange={handleTagFilterChange}
-                >
-                  <option value="">Duration (any)</option>
-                  {(availableTags.values?.duracion_aprox || []).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              )}
+            <label>Filtros por tags</label>
+            <div
+              style={{
+                display: 'grid',
+                gap: '0.5rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                alignItems: 'start'
+              }}
+            >
+              {tagConfigs
+                .filter(({ key }) => availableTags.keys.includes(key))
+                .map(({ key, label }) => (
+                  <div key={key} style={{ display: 'grid', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{label}</span>
+                    <select
+                      name={key}
+                      value={tagFilters[key]}
+                      onChange={handleTagFilterChange}
+                    >
+                      <option value="">Cualquiera</option>
+                      {(availableTags.values?.[key] || []).map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
             </div>
           </div>
         )}

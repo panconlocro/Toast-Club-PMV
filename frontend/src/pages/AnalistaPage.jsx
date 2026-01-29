@@ -56,7 +56,7 @@ function AnalistaPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>Training Sessions Dataset</h2>
           <button onClick={handleExportCSV} className="btn btn-primary">
-            📊 Export to CSV
+            Export to CSV
           </button>
         </div>
 
