@@ -13,6 +13,7 @@ Los objetivos principales de este PMV son:
 - Recolectar grabaciones de audio de sesiones
 - Recolectar retroalimentación mediante encuestas
 - Construir un dataset simple para análisis
+- Proveer textos de lectura normalizados para RV
 
 ## Qué NO es el PMV
 
@@ -33,12 +34,14 @@ Nota: el PMV **sí** incluye almacenamiento de audio privado mediante Cloudflare
 - Crea sesiones de entrenamiento para participantes
 - Administra el flujo (estados) de la sesión
 - Coordina el proceso de grabación (Unity sube el audio) y encuesta
+- Selecciona textos con filtros por tags
 
 ### ANALISTA (analista)
 
 - Visualiza los datos de las sesiones
 - Exporta datasets para análisis
 - Descarga audios mediante URLs presignadas
+- Previsualiza grabaciones desde la web
 
 ## Flujo de sesión (máquina de estados)
 
@@ -63,7 +66,7 @@ El backend usa el campo `estado` con una máquina de estados.
 ### Sesión (Session)
 
 - Información del participante (nombre, edad aproximada, email opcional)
-- Texto seleccionado para entrenamiento
+- Texto seleccionado para entrenamiento (normalizado desde la página 3)
 - Estado del flujo
 - Código único `session_code`
 

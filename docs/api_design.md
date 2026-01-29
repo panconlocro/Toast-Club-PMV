@@ -127,6 +127,11 @@ Los textos de entrenamiento se almacenan en un archivo JSON en el backend. Estos
 
 Devuelve la lista de todos los textos disponibles para entrenamiento (sin incluir las páginas completas).
 
+Soporta filtros por tags como query params (match por igualdad, **case-insensitive** y con **trim**):
+
+- Ejemplo: `/texts?tema=especialización&tono=combativo`
+- Si un query param no existe como key en `Tags`, no hace match.
+
 Respuesta:
 
 ```json
@@ -191,6 +196,12 @@ Notas:
 
 - `Pages` es un array de páginas, donde cada página es un array de líneas de texto.
 - Este es el formato que Unity debe usar para mostrar el texto al participante.
+- Desde la página 3 en adelante, el backend normaliza el texto para RV:
+  - Máximo 8 líneas por página.
+  - Máximo 39 caracteres por línea.
+  - Word wrapping sin cortar palabras (si es posible).
+  - Si supera 8 líneas, crea nuevas páginas.
+  - Páginas 1 y 2 se mantienen intactas.
 
 Si el texto no existe:
 
@@ -199,6 +210,22 @@ Si el texto no existe:
 ```
 
 ---
+
+### GET `/texts/tags`
+
+Devuelve el índice de tags disponibles para filtros.
+
+Respuesta:
+
+```json
+{
+  "keys": ["audiencia", "contexto", "duracion_aprox", "intencion", "referentes", "subtema", "tema", "tono"],
+  "values": {
+    "tema": ["especialización", "ética universitaria", "meritocracia", "misión de la universidad"],
+    "tono": ["combativo", "crítico", "provocador", "reflexivo-crítico"]
+  }
+}
+```
 
 ## Endpoints de sesión
 
@@ -222,7 +249,7 @@ Solicitud:
 Notas:
 
 - `texto_seleccionado_id`: ID del texto de entrenamiento (obtenido de `GET /texts`).
-- El backend busca el texto completo y lo almacena en la sesión.
+- El backend busca el texto completo y lo almacena en la sesión **ya normalizado**.
 - Si el ID no existe, devuelve `404`.
 
 Respuesta (`SessionResponse`):
@@ -388,7 +415,8 @@ Devuelve el dataset completo de sesiones.
 Notas:
 
 - Requiere rol `ANALISTA`
-- `recordings` contiene **keys de objetos en R2** (no URLs públicas). Para acceder al audio usar `/recordings/{id}/download`.
+- `recordings` contiene objetos con `id`, `audio_url` (key en R2) y `created_at`.
+- Para acceder al audio usar `/recordings/{id}/download` (URL presignada).
 
 ### GET `/dataset/export`
 

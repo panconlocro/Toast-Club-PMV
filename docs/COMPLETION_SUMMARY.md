@@ -82,6 +82,12 @@ Incluye validación de transiciones y pruebas unitarias.
 - `GET /api/v1/recordings/{recording_id}/download` (URL presignada; solo `ANALISTA`)
 - `POST /api/v1/sessions/{session_id}/recording` (mock/JSON; útil solo para pruebas web)
 
+**Textos de entrenamiento**
+
+- `GET /api/v1/texts` (lista con filtros por tags)
+- `GET /api/v1/texts/{text_id}` (texto completo con páginas normalizadas desde la 3ra)
+- `GET /api/v1/texts/tags` (índice de tags disponibles)
+
 **Encuestas**
 
 - `POST /api/v1/sessions/{session_id}/survey`
@@ -143,6 +149,12 @@ Incluye validación de transiciones y pruebas unitarias.
 
 - Ver dataset
 - Exportar CSV
+- Preview y descarga de grabaciones desde URL presignada
+
+**Selección de textos (IMPULSADOR)**
+
+- Filtros por tags
+- Búsqueda por título (insensible a tildes)
 
 ---
 

@@ -18,6 +18,8 @@ Toast Club PMV es un Producto Mínimo Viable para una plataforma de entrenamient
    - Resolución de sesión por código (`/sessions/by-code/{session_code}`)
    - Subida de audio real vía multipart (`/sessions/{session_id}/upload`)
    - Descarga de audio por URL presignada (solo ANALISTA)
+   - Textos de entrenamiento con filtros por tags y catálogo de tags
+   - Normalización de textos para RV (desde la página 3)
    - Envío de encuestas
    - Dataset y exportación a CSV (solo ANALISTA)
 - **Modelos**: SQLAlchemy (User, Session, Recording, Survey)
@@ -31,6 +33,8 @@ Toast Club PMV es un Producto Mínimo Viable para una plataforma de entrenamient
    - Inicio de sesión con ruteo por rol
    - Dashboard IMPULSADOR (crear/gestionar sesiones)
    - Dashboard ANALISTA (ver dataset/exportar)
+   - Filtros por tags y búsqueda por título en selección de textos
+   - Vista ANALISTA con preview y descarga de grabaciones
 - **Integración API**: cliente HTTP
 - **Ruteo**: rutas protegidas
 
@@ -76,6 +80,12 @@ Toast Club PMV es un Producto Mínimo Viable para una plataforma de entrenamient
 - Ver detalles de sesión
 - Actualizar estado (validado por la máquina de estados)
 
+### Textos de entrenamiento ✅
+
+- Listado con filtros por tags (case-insensitive)
+- Catálogo de tags para UI
+- Normalización de páginas para RV desde la página 3
+
 ### Máquina de estados ✅
 
 Estados: `created → ready_to_start → running → audio_uploaded → survey_pending → completed`
@@ -101,6 +111,8 @@ Estados: `created → ready_to_start → running → audio_uploaded → survey_p
 
 - ANALISTA ve dataset completo
 - Exportación a CSV
+- Dataset incluye recordings con `id` y metadata
+- Descarga de audio por URL presignada (preview/descarga en UI)
 
 ## Qué NO incluye (por diseño)
 

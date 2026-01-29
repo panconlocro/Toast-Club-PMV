@@ -29,6 +29,7 @@ docker-compose up --build
 - Health (salud): http://localhost:8000/health
 
 - **IMPULSADOR**: `impulsador@toastclub.com` / `impulsador123`
+- **ANALISTA**: `analista@toastclub.com` / `analista123`
 
 ---
 
