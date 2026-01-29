@@ -53,7 +53,14 @@ def get_dataset(
         
         # Get recordings data
         recordings = db.query(Recording).filter(Recording.session_id == session.id).all()
-        recording_urls = [rec.audio_url for rec in recordings]
+        recording_items = [
+            {
+                "id": rec.id,
+                "audio_url": rec.audio_url,
+                "created_at": to_local_iso(rec.created_at) or ""
+            }
+            for rec in recordings
+        ]
         
         # Get survey data
         surveys = db.query(Survey).filter(Survey.session_id == session.id).all()
@@ -69,7 +76,7 @@ def get_dataset(
             "estado": session.estado,
             "created_at": to_local_iso(session.created_at) or "",
             "recordings_count": recordings_count,
-            "recordings": recording_urls,
+            "recordings": recording_items,
             "surveys_count": surveys_count,
             "survey_responses": survey_responses
         }

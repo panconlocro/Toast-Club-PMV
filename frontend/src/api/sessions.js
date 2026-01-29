@@ -80,3 +80,10 @@ export const datasetAPI = {
     return response.data
   }
 }
+
+export const recordingsAPI = {
+  getRecordingDownloadUrl: async (recordingId) => {
+    const response = await apiClient.get(`${API_V1}/recordings/${recordingId}/download`)
+    return response.data
+  }
+}

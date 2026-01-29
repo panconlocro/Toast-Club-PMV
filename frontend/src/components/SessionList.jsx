@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
-import { sessionsAPI } from '../api/sessions'
+import { sessionsAPI, recordingsAPI } from '../api/sessions'
 
 function SessionList({ sessions }) {
   const [selectedSurvey, setSelectedSurvey] = useState(null)
   const [surveyLoading, setSurveyLoading] = useState(false)
   const [surveyError, setSurveyError] = useState('')
+  const [expandedSessionId, setExpandedSessionId] = useState(null)
+  const [recordingLinks, setRecordingLinks] = useState({})
 
   if (!sessions || sessions.length === 0) {
     return <p>No sessions found.</p>
@@ -52,6 +54,109 @@ function SessionList({ sessions }) {
     setSurveyError('')
   }
 
+  const toggleExpanded = (sessionId) => {
+    setExpandedSessionId((prev) => (prev === sessionId ? null : sessionId))
+  }
+
+  const getRecordingEntry = (recordingId) => recordingLinks[recordingId]
+
+  const fetchRecordingUrl = async (recordingId) => {
+    setRecordingLinks((prev) => ({
+      ...prev,
+      [recordingId]: { url: '', loading: true, error: '' }
+    }))
+
+    try {
+      const data = await recordingsAPI.getRecordingDownloadUrl(recordingId)
+      setRecordingLinks((prev) => ({
+        ...prev,
+        [recordingId]: { url: data.download_url, loading: false, error: '' }
+      }))
+      return data.download_url
+    } catch (err) {
+      setRecordingLinks((prev) => ({
+        ...prev,
+        [recordingId]: {
+          url: '',
+          loading: false,
+          error: err.response?.data?.detail || 'Failed to load recording'
+        }
+      }))
+      return ''
+    }
+  }
+
+  const getOrFetchRecordingUrl = async (recordingId) => {
+    const existing = getRecordingEntry(recordingId)
+    if (existing?.url) {
+      return existing.url
+    }
+    return fetchRecordingUrl(recordingId)
+  }
+
+  const handleDownloadRecording = async (recordingId) => {
+    const url = await getOrFetchRecordingUrl(recordingId)
+    if (!url) return
+
+    const link = document.createElement('a')
+    link.href = url
+    link.download = ''
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const parseTextoSeleccionado = (value) => {
+    if (!value) return null
+    if (typeof value === 'object') return value
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value)
+      } catch {
+        return { raw: value }
+      }
+    }
+    return null
+  }
+
+  const renderTextInfo = (textoSeleccionado) => {
+    const text = parseTextoSeleccionado(textoSeleccionado)
+    if (!text) return <span>N/A</span>
+
+    const tags = text.Tags || text.tags || {}
+    return (
+      <div style={{ display: 'grid', gap: '0.35rem' }}>
+        {text.Title && (
+          <div><strong>{text.Title}</strong></div>
+        )}
+        {text.Id && (
+          <div style={{ fontSize: '0.85rem', color: '#6c757d' }}>ID: {text.Id}</div>
+        )}
+        {Object.keys(tags).length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+            {Object.entries(tags).map(([key, value]) => (
+              <span
+                key={key}
+                style={{
+                  backgroundColor: '#eef2f7',
+                  color: '#445',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.75rem'
+                }}
+              >
+                {key}: {value}
+              </span>
+            ))}
+          </div>
+        )}
+        {text.raw && (
+          <div style={{ fontSize: '0.85rem', color: '#6c757d' }}>{text.raw}</div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <>
     <table className="table">
@@ -64,33 +169,55 @@ function SessionList({ sessions }) {
           <th>Created At</th>
           <th>Recordings</th>
           <th>Surveys</th>
+          <th>Details</th>
         </tr>
       </thead>
       <tbody>
         {sessions.map((session) => (
-          <tr key={session.session_id}>
-            <td><strong>{session.session_code}</strong></td>
-            <td>{session.participant_name}</td>
-            <td>{session.participant_age || 'N/A'}</td>
-            <td>
-              <span style={{
-                backgroundColor: getStateColor(session.estado),
-                color: 'white',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}>
-                {getStateLabel(session.estado)}
-              </span>
-            </td>
-            <td>{new Date(session.created_at).toLocaleString()}</td>
-            <td>{session.recordings_count}</td>
-            <td>
-              {session.surveys_count > 0 ? (
+          <React.Fragment key={session.session_id}>
+            <tr>
+              <td><strong>{session.session_code}</strong></td>
+              <td>{session.participant_name}</td>
+              <td>{session.participant_age || 'N/A'}</td>
+              <td>
+                <span style={{
+                  backgroundColor: getStateColor(session.estado),
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  fontSize: '12px'
+                }}>
+                  {getStateLabel(session.estado)}
+                </span>
+              </td>
+              <td>{new Date(session.created_at).toLocaleString()}</td>
+              <td>{session.recordings_count}</td>
+              <td>
+                {session.surveys_count > 0 ? (
+                  <button
+                    onClick={() => handleViewSurveys(session.session_id, session.participant_name)}
+                    style={{
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                    disabled={surveyLoading}
+                  >
+                    {surveyLoading ? 'Loading...' : 'More details'}
+                  </button>
+                ) : (
+                  <span style={{ color: '#6c757d', fontSize: '12px' }}>No surveys</span>
+                )}
+              </td>
+              <td>
                 <button
-                  onClick={() => handleViewSurveys(session.session_id, session.participant_name)}
+                  onClick={() => toggleExpanded(session.session_id)}
                   style={{
-                    backgroundColor: '#6c757d',
+                    backgroundColor: '#0d6efd',
                     color: 'white',
                     border: 'none',
                     padding: '4px 8px',
@@ -98,15 +225,112 @@ function SessionList({ sessions }) {
                     fontSize: '12px',
                     cursor: 'pointer'
                   }}
-                  disabled={surveyLoading}
                 >
-                  {surveyLoading ? 'Loading...' : 'More details'}
+                  {expandedSessionId === session.session_id ? 'Hide' : 'View'}
                 </button>
-              ) : (
-                <span style={{ color: '#6c757d', fontSize: '12px' }}>No surveys</span>
-              )}
-            </td>
-          </tr>
+              </td>
+            </tr>
+            {expandedSessionId === session.session_id && (
+              <tr>
+                <td colSpan={8}>
+                  <div style={{
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    display: 'grid',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'grid', gap: '4px' }}>
+                      <strong>Participant details</strong>
+                      <div>Name: {session.participant_name || 'N/A'}</div>
+                      <div>Email: {session.participant_email || 'N/A'}</div>
+                      <div>Age: {session.participant_age || 'N/A'}</div>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '6px' }}>
+                      <strong>Training text</strong>
+                      {renderTextInfo(session.texto_seleccionado)}
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '6px' }}>
+                      <strong>Recordings</strong>
+                      {session.recordings && session.recordings.length > 0 ? (
+                        <div style={{ display: 'grid', gap: '12px' }}>
+                          {session.recordings.map((recording, index) => {
+                            const recordingId = typeof recording === 'object' ? recording.id : null
+                            const recordingKey = recordingId || `${session.session_id}-${index}`
+                            const entry = recordingId ? getRecordingEntry(recordingId) : null
+
+                            return (
+                              <div key={recordingKey} style={{ display: 'grid', gap: '6px' }}>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  {recordingId ? (
+                                    <>
+                                      <button
+                                        onClick={() => fetchRecordingUrl(recordingId)}
+                                        style={{
+                                          backgroundColor: '#0d6efd',
+                                          color: 'white',
+                                          border: 'none',
+                                          padding: '4px 10px',
+                                          borderRadius: '4px',
+                                          fontSize: '12px',
+                                          cursor: 'pointer'
+                                        }}
+                                        disabled={entry?.loading}
+                                      >
+                                        {entry?.loading ? 'Loading...' : 'Preview'}
+                                      </button>
+                                      <button
+                                        onClick={() => handleDownloadRecording(recordingId)}
+                                        style={{
+                                          backgroundColor: '#198754',
+                                          color: 'white',
+                                          border: 'none',
+                                          padding: '4px 10px',
+                                          borderRadius: '4px',
+                                          fontSize: '12px',
+                                          cursor: 'pointer'
+                                        }}
+                                        disabled={entry?.loading}
+                                      >
+                                        Download
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <span style={{ color: '#6c757d' }}>Missing recording id</span>
+                                  )}
+                                  {recording?.created_at && (
+                                    <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                                      {new Date(recording.created_at).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {entry?.error && (
+                                  <span style={{ color: '#dc3545', fontSize: '0.85rem' }}>
+                                    {entry.error}
+                                  </span>
+                                )}
+
+                                {entry?.url && (
+                                  <div style={{ display: 'grid', gap: '6px' }}>
+                                    <audio controls src={entry.url} />
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#6c757d' }}>No recordings</span>
+                      )}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </React.Fragment>
         ))}
       </tbody>
     </table>
