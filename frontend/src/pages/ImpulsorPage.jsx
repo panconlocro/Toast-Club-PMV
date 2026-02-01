@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SessionForm from '../components/SessionForm'
 import SurveyForm from '../components/SurveyForm'
 import { sessionsAPI } from '../api/sessions'
@@ -40,7 +40,7 @@ function ImpulsorPage() {
         document.body.removeChild(textarea)
       }
       setMessage('Session code copied to clipboard.')
-    } catch (error) {
+    } catch {
       setMessage('Could not copy session code.')
     }
   }

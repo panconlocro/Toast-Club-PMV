@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { sessionsAPI, textsAPI } from '../api/sessions'
 
 function SessionForm({ onSessionCreated }) {

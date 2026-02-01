@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { sessionsAPI, recordingsAPI } from '../api/sessions'
 
 function SessionList({ sessions }) {
@@ -174,7 +174,7 @@ function SessionList({ sessions }) {
       </thead>
       <tbody>
         {sessions.map((session) => (
-          <React.Fragment key={session.session_id}>
+          <Fragment key={session.session_id}>
             <tr>
               <td><strong>{session.session_code}</strong></td>
               <td>{session.participant_name}</td>
@@ -330,7 +330,7 @@ function SessionList({ sessions }) {
                 </td>
               </tr>
             )}
-          </React.Fragment>
+          </Fragment>
         ))}
       </tbody>
     </table>
