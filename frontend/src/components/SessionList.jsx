@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react'
 import { sessionsAPI, recordingsAPI } from '../api/sessions'
+import { UI_COPY } from '../uiCopy'
 
 function SessionList({ sessions }) {
   const [selectedSurvey, setSelectedSurvey] = useState(null)
@@ -9,19 +10,11 @@ function SessionList({ sessions }) {
   const [recordingLinks, setRecordingLinks] = useState({})
 
   if (!sessions || sessions.length === 0) {
-    return <p>No sessions found.</p>
+    return <p>{UI_COPY.sessionList.noSessions}</p>
   }
 
   const getStateLabel = (estado) => {
-    const labels = {
-      'created': 'Created',
-      'ready_to_start': 'Ready to Start',
-      'running': 'Running',
-      'audio_uploaded': 'Audio Uploaded',
-      'survey_pending': 'Survey Pending',
-      'completed': 'Completed'
-    }
-    return labels[estado] || estado
+    return UI_COPY.stateLabels[estado] || estado
   }
 
   const getStateColor = (estado) => {
@@ -43,7 +36,7 @@ function SessionList({ sessions }) {
       const surveys = await sessionsAPI.getSurveys(sessionId)
       setSelectedSurvey({ surveys, participantName })
     } catch (err) {
-      setSurveyError(err.response?.data?.detail || 'Failed to load survey details')
+      setSurveyError(err.response?.data?.detail || UI_COPY.sessionList.surveyLoadError)
     } finally {
       setSurveyLoading(false)
     }
@@ -79,7 +72,7 @@ function SessionList({ sessions }) {
         [recordingId]: {
           url: '',
           loading: false,
-          error: err.response?.data?.detail || 'Failed to load recording'
+          error: err.response?.data?.detail || UI_COPY.sessionList.recordingLoadError
         }
       }))
       return ''
@@ -121,7 +114,7 @@ function SessionList({ sessions }) {
 
   const renderTextInfo = (textoSeleccionado) => {
     const text = parseTextoSeleccionado(textoSeleccionado)
-    if (!text) return <span>N/A</span>
+    if (!text) return <span>{UI_COPY.common.notAvailable}</span>
 
     const tags = text.Tags || text.tags || {}
     return (
@@ -162,14 +155,14 @@ function SessionList({ sessions }) {
     <table className="table">
       <thead>
         <tr>
-          <th>Session Code</th>
-          <th>Participant</th>
-          <th>Age</th>
-          <th>State</th>
-          <th>Created At</th>
-          <th>Recordings</th>
-          <th>Surveys</th>
-          <th>Details</th>
+          <th>{UI_COPY.sessionList.sessionCode}</th>
+          <th>{UI_COPY.sessionList.participant}</th>
+          <th>{UI_COPY.sessionList.age}</th>
+          <th>{UI_COPY.sessionList.state}</th>
+          <th>{UI_COPY.sessionList.createdAt}</th>
+          <th>{UI_COPY.sessionList.recordings}</th>
+          <th>{UI_COPY.sessionList.surveys}</th>
+          <th>{UI_COPY.sessionList.details}</th>
         </tr>
       </thead>
       <tbody>
@@ -178,7 +171,7 @@ function SessionList({ sessions }) {
             <tr>
               <td><strong>{session.session_code}</strong></td>
               <td>{session.participant_name}</td>
-              <td>{session.participant_age || 'N/A'}</td>
+              <td>{session.participant_age || UI_COPY.common.notAvailable}</td>
               <td>
                 <span style={{
                   backgroundColor: getStateColor(session.estado),
@@ -207,10 +200,10 @@ function SessionList({ sessions }) {
                     }}
                     disabled={surveyLoading}
                   >
-                    {surveyLoading ? 'Loading...' : 'More details'}
+                    {surveyLoading ? UI_COPY.sessionList.loading : UI_COPY.sessionList.moreDetails}
                   </button>
                 ) : (
-                  <span style={{ color: '#6c757d', fontSize: '12px' }}>No surveys</span>
+                  <span style={{ color: '#6c757d', fontSize: '12px' }}>{UI_COPY.sessionList.noSurveys}</span>
                 )}
               </td>
               <td>
@@ -226,7 +219,7 @@ function SessionList({ sessions }) {
                     cursor: 'pointer'
                   }}
                 >
-                  {expandedSessionId === session.session_id ? 'Hide' : 'View'}
+                  {expandedSessionId === session.session_id ? UI_COPY.sessionList.hide : UI_COPY.sessionList.view}
                 </button>
               </td>
             </tr>
@@ -241,19 +234,19 @@ function SessionList({ sessions }) {
                     gap: '12px'
                   }}>
                     <div style={{ display: 'grid', gap: '4px' }}>
-                      <strong>Participant details</strong>
-                      <div>Name: {session.participant_name || 'N/A'}</div>
-                      <div>Email: {session.participant_email || 'N/A'}</div>
-                      <div>Age: {session.participant_age || 'N/A'}</div>
+                      <strong>{UI_COPY.sessionList.participantDetails}</strong>
+                      <div>{UI_COPY.sessionList.name}: {session.participant_name || UI_COPY.common.notAvailable}</div>
+                      <div>{UI_COPY.sessionList.email}: {session.participant_email || UI_COPY.common.notAvailable}</div>
+                      <div>{UI_COPY.sessionList.age}: {session.participant_age || UI_COPY.common.notAvailable}</div>
                     </div>
 
                     <div style={{ display: 'grid', gap: '6px' }}>
-                      <strong>Training text</strong>
+                      <strong>{UI_COPY.sessionList.trainingText}</strong>
                       {renderTextInfo(session.texto_seleccionado)}
                     </div>
 
                     <div style={{ display: 'grid', gap: '6px' }}>
-                      <strong>Recordings</strong>
+                      <strong>{UI_COPY.sessionList.recordingsTitle}</strong>
                       {session.recordings && session.recordings.length > 0 ? (
                         <div style={{ display: 'grid', gap: '12px' }}>
                           {session.recordings.map((recording, index) => {
@@ -279,7 +272,7 @@ function SessionList({ sessions }) {
                                         }}
                                         disabled={entry?.loading}
                                       >
-                                        {entry?.loading ? 'Loading...' : 'Preview'}
+                                        {entry?.loading ? UI_COPY.sessionList.loading : UI_COPY.sessionList.preview}
                                       </button>
                                       <button
                                         onClick={() => handleDownloadRecording(recordingId)}
@@ -294,11 +287,11 @@ function SessionList({ sessions }) {
                                         }}
                                         disabled={entry?.loading}
                                       >
-                                        Download
+                                        {UI_COPY.sessionList.download}
                                       </button>
                                     </>
                                   ) : (
-                                    <span style={{ color: '#6c757d' }}>Missing recording id</span>
+                                    <span style={{ color: '#6c757d' }}>{UI_COPY.sessionList.missingRecordingId}</span>
                                   )}
                                   {recording?.created_at && (
                                     <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
@@ -323,7 +316,7 @@ function SessionList({ sessions }) {
                           })}
                         </div>
                       ) : (
-                        <span style={{ color: '#6c757d' }}>No recordings</span>
+                        <span style={{ color: '#6c757d' }}>{UI_COPY.sessionList.noRecordings}</span>
                       )}
                     </div>
                   </div>
@@ -365,7 +358,7 @@ function SessionList({ sessions }) {
           onClick={(e) => e.stopPropagation()}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0 }}>Survey Results - {selectedSurvey.participantName}</h3>
+            <h3 style={{ margin: 0 }}>{UI_COPY.sessionList.surveyResultsTitle} - {selectedSurvey.participantName}</h3>
             <button
               onClick={closeModal}
               style={{
@@ -381,15 +374,15 @@ function SessionList({ sessions }) {
           </div>
 
           {selectedSurvey.surveys.length === 0 ? (
-            <p>No survey responses found.</p>
+            <p>{UI_COPY.sessionList.noSurveyResponses}</p>
           ) : (
             selectedSurvey.surveys.map((survey, index) => (
               <div key={survey.id} style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                 {selectedSurvey.surveys.length > 1 && (
-                  <h4 style={{ marginTop: 0, marginBottom: '12px' }}>Survey #{index + 1}</h4>
+                  <h4 style={{ marginTop: 0, marginBottom: '12px' }}>{UI_COPY.sessionList.surveyNumber} #{index + 1}</h4>
                 )}
                 <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>
-                  Submitted: {new Date(survey.created_at).toLocaleString()}
+                  {UI_COPY.sessionList.submittedAt}: {new Date(survey.created_at).toLocaleString()}
                 </p>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <tbody>
@@ -399,7 +392,7 @@ function SessionList({ sessions }) {
                           {key}
                         </td>
                         <td style={{ padding: '8px' }}>
-                          {value || 'N/A'}
+                          {value || UI_COPY.common.notAvailable}
                         </td>
                       </tr>
                     ))}
@@ -414,7 +407,7 @@ function SessionList({ sessions }) {
             className="btn"
             style={{ marginTop: '16px', width: '100%' }}
           >
-            Close
+            {UI_COPY.sessionList.close}
           </button>
         </div>
       </div>

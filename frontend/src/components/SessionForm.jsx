@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { sessionsAPI, textsAPI } from '../api/sessions'
+import { UI_COPY } from '../uiCopy'
 
 function SessionForm({ onSessionCreated }) {
   const [formData, setFormData] = useState({
@@ -42,7 +43,7 @@ function SessionForm({ onSessionCreated }) {
         setAvailableTags(tagsResponse || { keys: [], values: {} })
       } catch (err) {
         console.error('Failed to fetch texts:', err)
-        setError('Failed to load available texts')
+        setError(UI_COPY.sessionForm.loadTextsError)
       } finally {
         setTextsLoading(false)
       }
@@ -65,7 +66,7 @@ function SessionForm({ onSessionCreated }) {
         setAvailableTexts(response.texts || [])
       } catch (err) {
         console.error('Failed to fetch texts:', err)
-        setError('Failed to load available texts')
+        setError(UI_COPY.sessionForm.loadTextsError)
       } finally {
         setTextsLoading(false)
       }
@@ -116,7 +117,7 @@ function SessionForm({ onSessionCreated }) {
         texto_seleccionado_id: ''
       })
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create session')
+      setError(err.response?.data?.detail || UI_COPY.sessionForm.createError)
     } finally {
       setLoading(false)
     }
@@ -158,11 +159,11 @@ function SessionForm({ onSessionCreated }) {
 
   return (
     <div className="card">
-      <h2>Create New Training Session</h2>
+      <h2>{UI_COPY.sessionForm.title}</h2>
       
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="nombre">Name / Alias *</label>
+          <label htmlFor="nombre">{UI_COPY.sessionForm.nameLabel}</label>
           <input
             id="nombre"
             name="nombre"
@@ -170,12 +171,12 @@ function SessionForm({ onSessionCreated }) {
             value={formData.nombre}
             onChange={handleChange}
             required
-            placeholder="Enter your name or alias"
+            placeholder={UI_COPY.sessionForm.namePlaceholder}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="edad_aproximada">Approximate Age</label>
+          <label htmlFor="edad_aproximada">{UI_COPY.sessionForm.ageLabel}</label>
           <input
             id="edad_aproximada"
             name="edad_aproximada"
@@ -184,25 +185,25 @@ function SessionForm({ onSessionCreated }) {
             onChange={handleChange}
             min="1"
             max="120"
-            placeholder="Optional"
+            placeholder={UI_COPY.sessionForm.agePlaceholder}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="email_opcional">Email (Optional)</label>
+          <label htmlFor="email_opcional">{UI_COPY.sessionForm.emailLabel}</label>
           <input
             id="email_opcional"
             name="email_opcional"
             type="email"
             value={formData.email_opcional}
             onChange={handleChange}
-            placeholder="your@email.com"
+            placeholder={UI_COPY.sessionForm.emailPlaceholder}
           />
         </div>
 
         {(availableTags.keys || []).length > 0 && (
           <div className="form-group">
-            <label>Filtros por tags</label>
+            <label>{UI_COPY.sessionForm.tagFilters}</label>
             <div
               style={{
                 display: 'grid',
@@ -221,7 +222,7 @@ function SessionForm({ onSessionCreated }) {
                       value={tagFilters[key]}
                       onChange={handleTagFilterChange}
                     >
-                      <option value="">Cualquiera</option>
+                      <option value="">{UI_COPY.sessionForm.anyOption}</option>
                       {(availableTags.values?.[key] || []).map((value) => (
                         <option key={value} value={value}>
                           {value}
@@ -235,21 +236,21 @@ function SessionForm({ onSessionCreated }) {
         )}
 
         <div className="form-group">
-          <label htmlFor="text_search">Search by title</label>
+          <label htmlFor="text_search">{UI_COPY.sessionForm.searchLabel}</label>
           <input
             id="text_search"
             name="text_search"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Type to search..."
+            placeholder={UI_COPY.sessionForm.searchPlaceholder}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="texto_seleccionado_id">Training Text *</label>
+          <label htmlFor="texto_seleccionado_id">{UI_COPY.sessionForm.trainingTextLabel}</label>
           {textsLoading ? (
-            <p>Loading available texts...</p>
+            <p>{UI_COPY.sessionForm.loadingTexts}</p>
           ) : (
             filteredTexts.length > 0 ? (
               <select
@@ -259,7 +260,7 @@ function SessionForm({ onSessionCreated }) {
                 onChange={handleChange}
                 required
               >
-                <option value="">-- Select a text --</option>
+                <option value="">{UI_COPY.sessionForm.selectTextPlaceholder}</option>
                 {filteredTexts.map((text) => (
                   <option key={text.Id} value={text.Id}>
                     {text.Title}
@@ -267,7 +268,7 @@ function SessionForm({ onSessionCreated }) {
                 ))}
               </select>
             ) : (
-              <p>No texts match your filters</p>
+              <p>{UI_COPY.sessionForm.noTextsMatch}</p>
             )
           )}
         </div>
@@ -281,19 +282,19 @@ function SessionForm({ onSessionCreated }) {
             borderRadius: '4px',
             fontSize: '0.9rem'
           }}>
-            <strong>Text Info:</strong>
+            <strong>{UI_COPY.sessionForm.textInfoTitle}:</strong>
             <ul style={{ margin: '0.5rem 0 0 1rem', padding: 0 }}>
               {selectedText.Tags.duracion_aprox && (
-                <li>Duration: {selectedText.Tags.duracion_aprox}</li>
+                <li>{UI_COPY.sessionForm.duration}: {selectedText.Tags.duracion_aprox}</li>
               )}
               {selectedText.Tags.tema && (
-                <li>Topic: {selectedText.Tags.tema}</li>
+                <li>{UI_COPY.sessionForm.topic}: {selectedText.Tags.tema}</li>
               )}
               {selectedText.Tags.tono && (
-                <li>Tone: {selectedText.Tags.tono}</li>
+                <li>{UI_COPY.sessionForm.tone}: {selectedText.Tags.tono}</li>
               )}
               {selectedText.Tags.audiencia && (
-                <li>Audience: {selectedText.Tags.audiencia}</li>
+                <li>{UI_COPY.sessionForm.audience}: {selectedText.Tags.audiencia}</li>
               )}
             </ul>
           </div>
@@ -306,7 +307,7 @@ function SessionForm({ onSessionCreated }) {
           className="btn btn-primary"
           disabled={loading || textsLoading}
         >
-          {loading ? 'Creating...' : 'Create Session'}
+          {loading ? UI_COPY.sessionForm.creating : UI_COPY.sessionForm.create}
         </button>
       </form>
     </div>

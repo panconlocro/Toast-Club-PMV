@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import SessionForm from '../components/SessionForm'
 import SurveyForm from '../components/SurveyForm'
 import { sessionsAPI } from '../api/sessions'
+import { UI_COPY } from '../uiCopy'
 
 function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
@@ -21,7 +22,7 @@ function ImpulsorPage() {
 
   const handleSessionCreated = (session) => {
     setCurrentSession(session)
-    setMessage(`Session created successfully! Session Code: ${session.session_code}`)
+    setMessage(UI_COPY.impulsor.successCreated)
   }
 
   const handleCopySessionCode = async () => {
@@ -39,9 +40,9 @@ function ImpulsorPage() {
         document.execCommand('copy')
         document.body.removeChild(textarea)
       }
-      setMessage('Session code copied to clipboard.')
+      setMessage(UI_COPY.impulsor.codeCopied)
     } catch {
-      setMessage('Could not copy session code.')
+      setMessage(UI_COPY.impulsor.codeCopyError)
     }
   }
 
@@ -49,10 +50,9 @@ function ImpulsorPage() {
     try {
       await sessionsAPI.updateSessionState(currentSession.id, 'ready_to_start')
       const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'running')
-      setCurrentSession(updatedSession)  // <-- actualizar estado en React y que se actualice la UI
-      setMessage('Session started! Waiting for Unity to upload the audio...')
+      setCurrentSession(updatedSession)
     } catch (error) {
-      setMessage('Error starting session: ' + (error.response?.data?.detail || error.message))
+      setMessage(`${UI_COPY.impulsor.startError}: ${error.response?.data?.detail || error.message}`)
     }
   }
 
@@ -60,9 +60,8 @@ function ImpulsorPage() {
     try {
       const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'survey_pending')
       setCurrentSession(updatedSession)
-      setMessage('Please fill out the survey.')
     } catch (error) {
-      setMessage('Error continuing to survey: ' + (error.response?.data?.detail || error.message))
+      setMessage(`${UI_COPY.impulsor.continueError}: ${error.response?.data?.detail || error.message}`)
     }
   }
 
@@ -71,7 +70,7 @@ function ImpulsorPage() {
       if (!prev) return prev
       return { ...prev, estado: 'completed' }
     })
-    setMessage('Session completed successfully')
+    setMessage('')
   }
 
   // Poll backend while the session is running so the UI updates automatically.
@@ -93,12 +92,7 @@ function ImpulsorPage() {
       pollingIntervalRef.current = setInterval(async () => {
         try {
           const latest = await sessionsAPI.getSession(sessionId)
-          setCurrentSession((prev) => {
-            if (prev?.estado === 'running' && latest?.estado === 'audio_uploaded') {
-              setMessage('Audio received successfully')
-            }
-            return latest
-          })
+          setCurrentSession(() => latest)
           setLastCheck(new Date())
         } catch (error) {
           console.warn('Polling failed:', error?.message || error)
@@ -115,12 +109,10 @@ function ImpulsorPage() {
     }
   }, [currentSession?.id, currentSession?.estado])
 
-  window.currentSession = currentSession  // For debugging purposes
-
   return (
     <div className="container">
-      <h1>IMPULSADOR Dashboard</h1>
-      <p>Create and manage training sessions</p>
+      <h1>{UI_COPY.impulsor.title}</h1>
+      <p>{UI_COPY.impulsor.subtitle}</p>
 
       {message && (
         <div className="card">
@@ -134,9 +126,9 @@ function ImpulsorPage() {
 
       {currentSession && currentSession.estado !== 'survey_pending' && currentSession.estado !== 'completed' && (
         <div className="card">
-          <h2>Current Session</h2>
+          <h2>{UI_COPY.impulsor.currentSessionTitle}</h2>
           <p>
-            <strong>Session Code:</strong> {currentSession.session_code}{' '}
+            <strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}{' '}
             {currentSession.estado !== 'running' && (
               <button
                 type="button"
@@ -144,36 +136,36 @@ function ImpulsorPage() {
                 className="btn btn-secondary"
                 style={{ padding: '6px 10px', fontSize: '14px', marginLeft: '8px' }}
               >
-                Copy
+                {UI_COPY.impulsor.copy}
               </button>
             )}
           </p>
-          <p><strong>Participant:</strong> {currentSession.datos_participante.nombre}</p>
-          <p><strong>State:</strong> {currentSession.estado}</p>
-          <p><strong>Training Text:</strong></p>
+          <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante.nombre}</p>
+          <p><strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}</p>
+          <p><strong>{UI_COPY.impulsor.trainingText}:</strong></p>
           <p style={{backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px'}}>
-            {currentSession.texto_seleccionado?.Title || 'No text selected'}
+            {currentSession.texto_seleccionado?.Title || UI_COPY.impulsor.noTextSelected}
           </p>
 
           <div style={{marginTop: '20px'}}>
             {currentSession.estado === 'created' && (
               <button onClick={handleStartSession} className="btn btn-primary">
-                Start Session
+                {UI_COPY.impulsor.startButton}
               </button>
             )}
             
             {currentSession.estado === 'running' && (
               <>
-                <p><strong>Waiting for Unity to upload audio...</strong></p>
+                <p><strong>{UI_COPY.impulsor.waitingAudioTitle}</strong></p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '12px 0' }}>
-                  <div className="loader" aria-label="Loading" />
+                  <div className="loader" aria-label={UI_COPY.common.loading} />
                   <p style={{ margin: 0 }}>
-                    The simulation is in progress. Audio will be uploaded automatically when finished.
+                    {UI_COPY.impulsor.waitingAudioBody}
                   </p>
                 </div>
                 {lastCheck && (
                   <p style={{ marginTop: '8px' }}>
-                    <strong>Last check:</strong> {lastCheck.toLocaleTimeString()}
+                    <strong>{UI_COPY.impulsor.lastCheck}:</strong> {lastCheck.toLocaleTimeString()}
                   </p>
                 )}
               </>
@@ -181,9 +173,9 @@ function ImpulsorPage() {
             
             {currentSession.estado === 'audio_uploaded' && (
               <>
-                <p><strong>Audio received successfully</strong></p>
+                <p><strong>{UI_COPY.impulsor.audioReceived}</strong></p>
                 <button onClick={handleContinueToSurvey} className="btn btn-primary">
-                  Continue to Survey
+                  {UI_COPY.impulsor.continueToSurvey}
                 </button>
               </>
             )}
@@ -200,12 +192,12 @@ function ImpulsorPage() {
 
       {currentSession?.estado === 'completed' && (
         <div className="card">
-          <h2>Session completed successfully</h2>
-          <p><strong>Session Code:</strong> {currentSession.session_code}</p>
-          <p><strong>Participant:</strong> {currentSession.datos_participante?.nombre}</p>
+          <h2>{UI_COPY.impulsor.completedTitle}</h2>
+          <p><strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}</p>
+          <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante?.nombre}</p>
           <div style={{ marginTop: '16px' }}>
             <button onClick={handleCreateNewSession} className="btn btn-primary">
-              Create new session
+              {UI_COPY.impulsor.newSession}
             </button>
           </div>
         </div>

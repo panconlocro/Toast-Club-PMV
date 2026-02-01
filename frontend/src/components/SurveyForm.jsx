@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { sessionsAPI } from '../api/sessions'
+import { UI_COPY } from '../uiCopy'
 
 function SurveyForm({ sessionId, onSurveySubmitted }) {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
       await sessionsAPI.submitSurvey(sessionId, formData)
       onSurveySubmitted()
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to submit survey')
+      setError(err.response?.data?.detail || UI_COPY.surveyForm.submitError)
     } finally {
       setLoading(false)
     }
@@ -37,12 +38,12 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
 
   return (
     <div className="card">
-      <h2>Training Feedback Survey</h2>
-      <p>Please share your experience with this training session.</p>
+      <h2>{UI_COPY.surveyForm.title}</h2>
+      <p>{UI_COPY.surveyForm.subtitle}</p>
       
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="experiencia_general">Overall Experience *</label>
+          <label htmlFor="experiencia_general">{UI_COPY.surveyForm.overallExperience}</label>
           <select
             id="experiencia_general"
             name="experiencia_general"
@@ -50,16 +51,16 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
             onChange={handleChange}
             required
           >
-            <option value="">Select an option</option>
-            <option value="excelente">Excellent</option>
-            <option value="buena">Good</option>
-            <option value="regular">Regular</option>
-            <option value="mala">Bad</option>
+            <option value="">{UI_COPY.surveyForm.selectOption}</option>
+            <option value="excelente">{UI_COPY.surveyForm.excellent}</option>
+            <option value="buena">{UI_COPY.surveyForm.good}</option>
+            <option value="regular">{UI_COPY.surveyForm.regular}</option>
+            <option value="mala">{UI_COPY.surveyForm.bad}</option>
           </select>
         </div>
 
         <div className="form-group">
-          <label htmlFor="facilidad_uso">Ease of Use *</label>
+          <label htmlFor="facilidad_uso">{UI_COPY.surveyForm.easeOfUse}</label>
           <select
             id="facilidad_uso"
             name="facilidad_uso"
@@ -67,16 +68,16 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
             onChange={handleChange}
             required
           >
-            <option value="">Select an option</option>
-            <option value="muy_facil">Very Easy</option>
-            <option value="facil">Easy</option>
-            <option value="dificil">Difficult</option>
-            <option value="muy_dificil">Very Difficult</option>
+            <option value="">{UI_COPY.surveyForm.selectOption}</option>
+            <option value="muy_facil">{UI_COPY.surveyForm.veryEasy}</option>
+            <option value="facil">{UI_COPY.surveyForm.easy}</option>
+            <option value="dificil">{UI_COPY.surveyForm.difficult}</option>
+            <option value="muy_dificil">{UI_COPY.surveyForm.veryDifficult}</option>
           </select>
         </div>
 
         <div className="form-group">
-          <label htmlFor="utilidad_entrenamiento">Training Usefulness *</label>
+          <label htmlFor="utilidad_entrenamiento">{UI_COPY.surveyForm.trainingUsefulness}</label>
           <select
             id="utilidad_entrenamiento"
             name="utilidad_entrenamiento"
@@ -84,16 +85,16 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
             onChange={handleChange}
             required
           >
-            <option value="">Select an option</option>
-            <option value="muy_util">Very Useful</option>
-            <option value="util">Useful</option>
-            <option value="poco_util">Somewhat Useful</option>
-            <option value="no_util">Not Useful</option>
+            <option value="">{UI_COPY.surveyForm.selectOption}</option>
+            <option value="muy_util">{UI_COPY.surveyForm.veryUseful}</option>
+            <option value="util">{UI_COPY.surveyForm.useful}</option>
+            <option value="poco_util">{UI_COPY.surveyForm.somewhatUseful}</option>
+            <option value="no_util">{UI_COPY.surveyForm.notUseful}</option>
           </select>
         </div>
 
         <div className="form-group">
-          <label htmlFor="volveria_usar">Would you use it again? *</label>
+          <label htmlFor="volveria_usar">{UI_COPY.surveyForm.wouldUseAgain}</label>
           <select
             id="volveria_usar"
             name="volveria_usar"
@@ -101,21 +102,21 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
             onChange={handleChange}
             required
           >
-            <option value="">Select an option</option>
-            <option value="si">Yes</option>
-            <option value="no">No</option>
-            <option value="tal_vez">Maybe</option>
+            <option value="">{UI_COPY.surveyForm.selectOption}</option>
+            <option value="si">{UI_COPY.surveyForm.yes}</option>
+            <option value="no">{UI_COPY.surveyForm.no}</option>
+            <option value="tal_vez">{UI_COPY.surveyForm.maybe}</option>
           </select>
         </div>
 
         <div className="form-group">
-          <label htmlFor="mejoras_sugeridas">Suggested Improvements</label>
+          <label htmlFor="mejoras_sugeridas">{UI_COPY.surveyForm.improvements}</label>
           <textarea
             id="mejoras_sugeridas"
             name="mejoras_sugeridas"
             value={formData.mejoras_sugeridas}
             onChange={handleChange}
-            placeholder="Tell us how we can improve..."
+            placeholder={UI_COPY.surveyForm.improvementsPlaceholder}
             rows="4"
           />
         </div>
@@ -127,7 +128,7 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
           className="btn btn-primary"
           disabled={loading}
         >
-          {loading ? 'Submitting...' : 'Submit Survey'}
+          {loading ? UI_COPY.surveyForm.submitting : UI_COPY.surveyForm.submit}
         </button>
       </form>
     </div>

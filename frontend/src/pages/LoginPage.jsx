@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authAPI } from '../api/sessions'
+import { UI_COPY } from '../uiCopy'
 
 function LoginPage({ setIsAuthenticated, setUserRole }) {
   const [email, setEmail] = useState('')
@@ -31,7 +32,7 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
         navigate('/analista')
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please try again.')
+      setError(err.response?.data?.detail || UI_COPY.login.error)
     } finally {
       setLoading(false)
     }
@@ -40,12 +41,12 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
   return (
     <div className="container">
       <div className="card" style={{ maxWidth: '400px', margin: '100px auto' }}>
-        <h1>Toast Club PMV</h1>
-        <h2>Login</h2>
+        <h1>{UI_COPY.login.title}</h1>
+        <h2>{UI_COPY.login.subtitle}</h2>
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{UI_COPY.login.emailLabel}</label>
             <input
               id="email"
               type="email"
@@ -57,7 +58,7 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
           </div>
           
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{UI_COPY.login.passwordLabel}</label>
             <input
               id="password"
               type="password"
@@ -75,14 +76,14 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
             disabled={loading}
             style={{ width: '100%' }}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? UI_COPY.login.submitting : UI_COPY.login.submit}
           </button>
         </form>
         
         <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
-          <p><strong>Test Accounts:</strong></p>
-          <p>Impulsador: impulsador@toastclub.com / impulsador123</p>
-          <p>Analista: analista@toastclub.com / analista123</p>
+          <p><strong>{UI_COPY.login.testAccountsTitle}:</strong></p>
+          <p>{UI_COPY.login.impulsorAccount}</p>
+          <p>{UI_COPY.login.analistaAccount}</p>
         </div>
       </div>
     </div>
