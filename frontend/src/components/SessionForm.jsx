@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import { sessionsAPI, textsAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
+import Card from './ui/Card'
+import Input from './ui/Input'
+import Select from './ui/Select'
+import Button from './ui/Button'
+import InlineMessage from './ui/InlineMessage'
+import Spinner from './ui/Spinner'
 
 function SessionForm({ onSessionCreated }) {
   const [formData, setFormData] = useState({
@@ -158,48 +164,41 @@ function SessionForm({ onSessionCreated }) {
   const selectedText = filteredTexts.find(t => t.Id === formData.texto_seleccionado_id)
 
   return (
-    <div className="card">
-      <h2>{UI_COPY.sessionForm.title}</h2>
+    <Card title={UI_COPY.sessionForm.title}>
       
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="nombre">{UI_COPY.sessionForm.nameLabel}</label>
-          <input
-            id="nombre"
-            name="nombre"
-            type="text"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-            placeholder={UI_COPY.sessionForm.namePlaceholder}
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="ui-form">
+        <Input
+          id="nombre"
+          name="nombre"
+          label={UI_COPY.sessionForm.nameLabel}
+          type="text"
+          value={formData.nombre}
+          onChange={handleChange}
+          required
+          placeholder={UI_COPY.sessionForm.namePlaceholder}
+        />
 
-        <div className="form-group">
-          <label htmlFor="edad_aproximada">{UI_COPY.sessionForm.ageLabel}</label>
-          <input
-            id="edad_aproximada"
-            name="edad_aproximada"
-            type="number"
-            value={formData.edad_aproximada}
-            onChange={handleChange}
-            min="1"
-            max="120"
-            placeholder={UI_COPY.sessionForm.agePlaceholder}
-          />
-        </div>
+        <Input
+          id="edad_aproximada"
+          name="edad_aproximada"
+          label={UI_COPY.sessionForm.ageLabel}
+          type="number"
+          value={formData.edad_aproximada}
+          onChange={handleChange}
+          min="1"
+          max="120"
+          placeholder={UI_COPY.sessionForm.agePlaceholder}
+        />
 
-        <div className="form-group">
-          <label htmlFor="email_opcional">{UI_COPY.sessionForm.emailLabel}</label>
-          <input
-            id="email_opcional"
-            name="email_opcional"
-            type="email"
-            value={formData.email_opcional}
-            onChange={handleChange}
-            placeholder={UI_COPY.sessionForm.emailPlaceholder}
-          />
-        </div>
+        <Input
+          id="email_opcional"
+          name="email_opcional"
+          label={UI_COPY.sessionForm.emailLabel}
+          type="email"
+          value={formData.email_opcional}
+          onChange={handleChange}
+          placeholder={UI_COPY.sessionForm.emailPlaceholder}
+        />
 
         {(availableTags.keys || []).length > 0 && (
           <div className="form-group">
@@ -217,7 +216,7 @@ function SessionForm({ onSessionCreated }) {
                 .map(({ key, label }) => (
                   <div key={key} style={{ display: 'grid', gap: '0.25rem' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{label}</span>
-                    <select
+                    <Select
                       name={key}
                       value={tagFilters[key]}
                       onChange={handleTagFilterChange}
@@ -228,32 +227,33 @@ function SessionForm({ onSessionCreated }) {
                           {value}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 ))}
             </div>
           </div>
         )}
 
-        <div className="form-group">
-          <label htmlFor="text_search">{UI_COPY.sessionForm.searchLabel}</label>
-          <input
-            id="text_search"
-            name="text_search"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={UI_COPY.sessionForm.searchPlaceholder}
-          />
-        </div>
+        <Input
+          id="text_search"
+          name="text_search"
+          label={UI_COPY.sessionForm.searchLabel}
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={UI_COPY.sessionForm.searchPlaceholder}
+        />
 
         <div className="form-group">
           <label htmlFor="texto_seleccionado_id">{UI_COPY.sessionForm.trainingTextLabel}</label>
           {textsLoading ? (
-            <p>{UI_COPY.sessionForm.loadingTexts}</p>
+            <InlineMessage variant="info">
+              <Spinner label={UI_COPY.common.loading} />
+              {UI_COPY.sessionForm.loadingTexts}
+            </InlineMessage>
           ) : (
             filteredTexts.length > 0 ? (
-              <select
+              <Select
                 id="texto_seleccionado_id"
                 name="texto_seleccionado_id"
                 value={formData.texto_seleccionado_id}
@@ -266,9 +266,9 @@ function SessionForm({ onSessionCreated }) {
                     {text.Title}
                   </option>
                 ))}
-              </select>
+              </Select>
             ) : (
-              <p>{UI_COPY.sessionForm.noTextsMatch}</p>
+              <InlineMessage variant="info">{UI_COPY.sessionForm.noTextsMatch}</InlineMessage>
             )
           )}
         </div>
@@ -300,17 +300,13 @@ function SessionForm({ onSessionCreated }) {
           </div>
         )}
 
-        {error && <div className="error">{error}</div>}
+        {error && <InlineMessage variant="error">{error}</InlineMessage>}
 
-        <button 
-          type="submit" 
-          className="btn btn-primary"
-          disabled={loading || textsLoading}
-        >
+        <Button type="submit" variant="primary" disabled={loading || textsLoading}>
           {loading ? UI_COPY.sessionForm.creating : UI_COPY.sessionForm.create}
-        </button>
+        </Button>
       </form>
-    </div>
+    </Card>
   )
 }
 

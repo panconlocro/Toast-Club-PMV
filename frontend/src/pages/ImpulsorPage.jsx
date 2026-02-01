@@ -4,6 +4,10 @@ import SurveyForm from '../components/SurveyForm'
 import { sessionsAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
 import Layout from '../components/Layout'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import InlineMessage from '../components/ui/InlineMessage'
+import Spinner from '../components/ui/Spinner'
 
 function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
@@ -114,9 +118,9 @@ function ImpulsorPage() {
     <Layout title={UI_COPY.impulsor.title} subtitle={UI_COPY.impulsor.subtitle}>
 
       {message && (
-        <div className="card">
-          <div className="success">{message}</div>
-        </div>
+        <Card>
+          <InlineMessage variant="success">{message}</InlineMessage>
+        </Card>
       )}
 
       {!currentSession && (
@@ -124,19 +128,19 @@ function ImpulsorPage() {
       )}
 
       {currentSession && currentSession.estado !== 'survey_pending' && currentSession.estado !== 'completed' && (
-        <div className="card">
-          <h2>{UI_COPY.impulsor.currentSessionTitle}</h2>
+        <Card title={UI_COPY.impulsor.currentSessionTitle}>
           <p>
             <strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}{' '}
             {currentSession.estado !== 'running' && (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={handleCopySessionCode}
-                className="btn btn-secondary"
-                style={{ padding: '6px 10px', fontSize: '14px', marginLeft: '8px' }}
+                style={{ marginLeft: '8px' }}
               >
                 {UI_COPY.impulsor.copy}
-              </button>
+              </Button>
             )}
           </p>
           <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante.nombre}</p>
@@ -148,16 +152,16 @@ function ImpulsorPage() {
 
           <div style={{marginTop: '20px'}}>
             {currentSession.estado === 'created' && (
-              <button onClick={handleStartSession} className="btn btn-primary">
+              <Button onClick={handleStartSession} variant="primary">
                 {UI_COPY.impulsor.startButton}
-              </button>
+              </Button>
             )}
             
             {currentSession.estado === 'running' && (
               <>
                 <p><strong>{UI_COPY.impulsor.waitingAudioTitle}</strong></p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '12px 0' }}>
-                  <div className="loader" aria-label={UI_COPY.common.loading} />
+                  <Spinner label={UI_COPY.common.loading} />
                   <p style={{ margin: 0 }}>
                     {UI_COPY.impulsor.waitingAudioBody}
                   </p>
@@ -173,13 +177,13 @@ function ImpulsorPage() {
             {currentSession.estado === 'audio_uploaded' && (
               <>
                 <p><strong>{UI_COPY.impulsor.audioReceived}</strong></p>
-                <button onClick={handleContinueToSurvey} className="btn btn-primary">
+                <Button onClick={handleContinueToSurvey} variant="primary">
                   {UI_COPY.impulsor.continueToSurvey}
-                </button>
+                </Button>
               </>
             )}
           </div>
-        </div>
+        </Card>
       )}
 
       {currentSession?.estado === 'survey_pending' && (
@@ -190,16 +194,15 @@ function ImpulsorPage() {
       )}
 
       {currentSession?.estado === 'completed' && (
-        <div className="card">
-          <h2>{UI_COPY.impulsor.completedTitle}</h2>
+        <Card title={UI_COPY.impulsor.completedTitle}>
           <p><strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}</p>
           <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante?.nombre}</p>
           <div style={{ marginTop: '16px' }}>
-            <button onClick={handleCreateNewSession} className="btn btn-primary">
+            <Button onClick={handleCreateNewSession} variant="primary">
               {UI_COPY.impulsor.newSession}
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       )}
     </Layout>
   )

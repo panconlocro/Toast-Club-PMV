@@ -1,6 +1,8 @@
 import { Fragment, useState } from 'react'
 import { sessionsAPI, recordingsAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
+import Button from './ui/Button'
+import InlineMessage from './ui/InlineMessage'
 
 function SessionList({ sessions }) {
   const [selectedSurvey, setSelectedSurvey] = useState(null)
@@ -187,40 +189,26 @@ function SessionList({ sessions }) {
               <td>{session.recordings_count}</td>
               <td>
                 {session.surveys_count > 0 ? (
-                  <button
+                  <Button
                     onClick={() => handleViewSurveys(session.session_id, session.participant_name)}
-                    style={{
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}
+                    variant="secondary"
+                    size="sm"
                     disabled={surveyLoading}
                   >
                     {surveyLoading ? UI_COPY.sessionList.loading : UI_COPY.sessionList.moreDetails}
-                  </button>
+                  </Button>
                 ) : (
                   <span style={{ color: '#6c757d', fontSize: '12px' }}>{UI_COPY.sessionList.noSurveys}</span>
                 )}
               </td>
               <td>
-                <button
+                <Button
                   onClick={() => toggleExpanded(session.session_id)}
-                  style={{
-                    backgroundColor: '#0d6efd',
-                    color: 'white',
-                    border: 'none',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
+                  variant="primary"
+                  size="sm"
                 >
                   {expandedSessionId === session.session_id ? UI_COPY.sessionList.hide : UI_COPY.sessionList.view}
-                </button>
+                </Button>
               </td>
             </tr>
             {expandedSessionId === session.session_id && (
@@ -259,36 +247,22 @@ function SessionList({ sessions }) {
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                   {recordingId ? (
                                     <>
-                                      <button
+                                      <Button
                                         onClick={() => fetchRecordingUrl(recordingId)}
-                                        style={{
-                                          backgroundColor: '#0d6efd',
-                                          color: 'white',
-                                          border: 'none',
-                                          padding: '4px 10px',
-                                          borderRadius: '4px',
-                                          fontSize: '12px',
-                                          cursor: 'pointer'
-                                        }}
+                                        variant="primary"
+                                        size="sm"
                                         disabled={entry?.loading}
                                       >
                                         {entry?.loading ? UI_COPY.sessionList.loading : UI_COPY.sessionList.preview}
-                                      </button>
-                                      <button
+                                      </Button>
+                                      <Button
                                         onClick={() => handleDownloadRecording(recordingId)}
-                                        style={{
-                                          backgroundColor: '#198754',
-                                          color: 'white',
-                                          border: 'none',
-                                          padding: '4px 10px',
-                                          borderRadius: '4px',
-                                          fontSize: '12px',
-                                          cursor: 'pointer'
-                                        }}
+                                        variant="success"
+                                        size="sm"
                                         disabled={entry?.loading}
                                       >
                                         {UI_COPY.sessionList.download}
-                                      </button>
+                                      </Button>
                                     </>
                                   ) : (
                                     <span style={{ color: '#6c757d' }}>{UI_COPY.sessionList.missingRecordingId}</span>
@@ -402,19 +376,21 @@ function SessionList({ sessions }) {
             ))
           )}
 
-          <button
+          <Button
             onClick={closeModal}
-            className="btn"
+            variant="secondary"
             style={{ marginTop: '16px', width: '100%' }}
           >
             {UI_COPY.sessionList.close}
-          </button>
+          </Button>
         </div>
       </div>
     )}
 
     {surveyError && (
-      <div style={{ color: 'red', marginTop: '10px' }}>{surveyError}</div>
+      <InlineMessage variant="error" className="table-alert">
+        {surveyError}
+      </InlineMessage>
     )}
     </>
   )

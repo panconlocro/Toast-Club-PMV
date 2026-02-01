@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { authAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
 import Layout from '../components/Layout'
+import Card from '../components/ui/Card'
+import Input from '../components/ui/Input'
+import Button from '../components/ui/Button'
+import InlineMessage from '../components/ui/InlineMessage'
 
 function LoginPage({ setIsAuthenticated, setUserRole }) {
   const [email, setEmail] = useState('')
@@ -41,43 +45,33 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
 
   return (
     <Layout title={UI_COPY.login.title} subtitle={UI_COPY.login.subtitle}>
-      <div className="card" style={{ maxWidth: '420px', margin: '0 auto' }}>
-        <h2 className="section-title">Acceso</h2>
+      <Card className="login-card" title="Acceso">
         
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">{UI_COPY.login.emailLabel}</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="impulsador@toastclub.com"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="ui-form">
+          <Input
+            id="email"
+            label={UI_COPY.login.emailLabel}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="impulsador@toastclub.com"
+          />
           
-          <div className="form-group">
-            <label htmlFor="password">{UI_COPY.login.passwordLabel}</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <Input
+            id="password"
+            label={UI_COPY.login.passwordLabel}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           
-          {error && <div className="error">{error}</div>}
+          {error && <InlineMessage variant="error">{error}</InlineMessage>}
           
-          <button 
-            type="submit" 
-            className="btn btn-primary" 
-            disabled={loading}
-            style={{ width: '100%' }}
-          >
+          <Button type="submit" variant="primary" disabled={loading} style={{ width: '100%' }}>
             {loading ? UI_COPY.login.submitting : UI_COPY.login.submit}
-          </button>
+          </Button>
         </form>
         
         <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
@@ -85,7 +79,7 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
           <p>{UI_COPY.login.impulsorAccount}</p>
           <p>{UI_COPY.login.analistaAccount}</p>
         </div>
-      </div>
+      </Card>
     </Layout>
   )
 }

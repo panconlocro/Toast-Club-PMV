@@ -3,6 +3,9 @@ import SessionList from '../components/SessionList'
 import { datasetAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
 import Layout from '../components/Layout'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import InlineMessage from '../components/ui/InlineMessage'
 
 function AnalistaPage() {
   const [dataset, setDataset] = useState(null)
@@ -47,17 +50,17 @@ function AnalistaPage() {
     <Layout title={UI_COPY.analista.title} subtitle={UI_COPY.analista.subtitle}>
 
       {error && (
-        <div className="card">
-          <div className="error">{error}</div>
-        </div>
+        <Card>
+          <InlineMessage variant="error">{error}</InlineMessage>
+        </Card>
       )}
 
-      <div className="card">
+      <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2>{UI_COPY.analista.datasetTitle}</h2>
-          <button onClick={handleExportCSV} className="btn btn-primary">
+          <h2 className="section-title">{UI_COPY.analista.datasetTitle}</h2>
+          <Button onClick={handleExportCSV} variant="primary">
             {UI_COPY.analista.exportCsv}
-          </button>
+          </Button>
         </div>
 
         {loading ? (
@@ -70,10 +73,9 @@ function AnalistaPage() {
         ) : (
           <p>{UI_COPY.analista.noDataset}</p>
         )}
-      </div>
+      </Card>
 
-      <div className="card">
-        <h3>{UI_COPY.analista.statsTitle}</h3>
+      <Card title={UI_COPY.analista.statsTitle}>
         {dataset && (
           <div>
             <p><strong>{UI_COPY.analista.completedSessions}:</strong> {dataset.dataset.filter(s => s.estado === 'completed').length}</p>
@@ -81,7 +83,7 @@ function AnalistaPage() {
             <p><strong>{UI_COPY.analista.totalSurveys}:</strong> {dataset.dataset.reduce((sum, s) => sum + s.surveys_count, 0)}</p>
           </div>
         )}
-      </div>
+      </Card>
     </Layout>
   )
 }

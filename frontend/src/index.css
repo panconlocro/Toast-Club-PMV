@@ -265,6 +265,191 @@ h3 {
   animation: spin 1s linear infinite;
 }
 
+.ui-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(35, 43, 54, 0.06);
+  display: grid;
+  gap: 16px;
+}
+
+.ui-card__header {
+  display: grid;
+  gap: 6px;
+}
+
+.ui-card__title {
+  margin: 0;
+  font-size: 20px;
+  color: #1f2937;
+}
+
+.ui-card__subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.ui-card__content {
+  display: grid;
+  gap: 16px;
+}
+
+.ui-form {
+  display: grid;
+  gap: 16px;
+}
+
+.ui-form > * {
+  margin: 0;
+}
+
+.ui-button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+  box-shadow: 0 10px 20px rgba(35, 43, 54, 0.16);
+}
+
+.ui-button--sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+.ui-button--primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+}
+
+.ui-button--secondary {
+  background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+  color: #fff;
+}
+
+.ui-button--success {
+  background: linear-gradient(135deg, #4caf80, #2f9461);
+  color: #fff;
+}
+
+.ui-button--ghost {
+  background: rgba(47, 54, 64, 0.08);
+  color: #2f3640;
+  box-shadow: none;
+}
+
+.ui-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+}
+
+.ui-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow);
+}
+
+.ui-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.ui-field {
+  display: grid;
+  gap: 8px;
+}
+
+.ui-label {
+  font-weight: 600;
+  color: #303b46;
+  font-size: 14px;
+}
+
+.ui-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(35, 43, 54, 0.16);
+  border-radius: 10px;
+  font-size: 14px;
+  background-color: var(--surface-muted);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.ui-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(91, 110, 225, 0.18);
+}
+
+.ui-select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #7a8797 50%),
+    linear-gradient(135deg, #7a8797 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+.ui-helper {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ui-helper--error {
+  color: #b33a3a;
+}
+
+.ui-alert {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ui-alert--info {
+  background: rgba(91, 110, 225, 0.12);
+  color: #2f3b57;
+}
+
+.ui-alert--success {
+  background: rgba(76, 175, 128, 0.14);
+  color: #215239;
+}
+
+.ui-alert--error {
+  background: rgba(195, 76, 76, 0.12);
+  color: #7a2626;
+}
+
+.ui-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(35, 43, 54, 0.2);
+  border-top: 2px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+.login-card {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.table-alert {
+  margin-top: 12px;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
