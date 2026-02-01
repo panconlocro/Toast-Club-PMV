@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import ImpulsorPage from './pages/ImpulsorPage'
 import AnalistaPage from './pages/AnalistaPage'
@@ -32,10 +32,7 @@ function App() {
     <div className="app">
       {isAuthenticated && (
         <nav className="nav">
-          <Link to={userRole === 'IMPULSADOR' ? '/impulsador' : '/analista'}>
-            {UI_COPY.nav.home}
-          </Link>
-          <button onClick={handleLogout} className="btn btn-secondary" style={{float: 'right'}}>
+          <button onClick={handleLogout} className="btn btn-secondary nav__logout">
             {UI_COPY.nav.logout}
           </button>
         </nav>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import SessionList from '../components/SessionList'
 import { datasetAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
+import Layout from '../components/Layout'
 
 function AnalistaPage() {
   const [dataset, setDataset] = useState(null)
@@ -43,9 +44,7 @@ function AnalistaPage() {
   }
 
   return (
-    <div className="container">
-      <h1>{UI_COPY.analista.title}</h1>
-      <p>{UI_COPY.analista.subtitle}</p>
+    <Layout title={UI_COPY.analista.title} subtitle={UI_COPY.analista.subtitle}>
 
       {error && (
         <div className="card">
@@ -83,7 +82,7 @@ function AnalistaPage() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   )
 }
 

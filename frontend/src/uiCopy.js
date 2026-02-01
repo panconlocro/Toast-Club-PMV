@@ -24,7 +24,7 @@ export const UI_COPY = {
   },
   impulsor: {
     title: 'Panel del Impulsador',
-    subtitle: 'Crea y gestiona sesiones de entrenamiento',
+    subtitle: 'Crea y gestiona sesiones',
     successCreated: 'Sesión creada. Comparte el código con el participante.',
     codeCopied: 'Código copiado al portapapeles.',
     codeCopyError: 'No se pudo copiar el código.',

@@ -3,6 +3,7 @@ import SessionForm from '../components/SessionForm'
 import SurveyForm from '../components/SurveyForm'
 import { sessionsAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
+import Layout from '../components/Layout'
 
 function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
@@ -110,9 +111,7 @@ function ImpulsorPage() {
   }, [currentSession?.id, currentSession?.estado])
 
   return (
-    <div className="container">
-      <h1>{UI_COPY.impulsor.title}</h1>
-      <p>{UI_COPY.impulsor.subtitle}</p>
+    <Layout title={UI_COPY.impulsor.title} subtitle={UI_COPY.impulsor.subtitle}>
 
       {message && (
         <div className="card">
@@ -202,7 +201,7 @@ function ImpulsorPage() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   )
 }
 

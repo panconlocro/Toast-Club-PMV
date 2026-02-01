@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
+import Layout from '../components/Layout'
 
 function LoginPage({ setIsAuthenticated, setUserRole }) {
   const [email, setEmail] = useState('')
@@ -39,10 +40,9 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
   }
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: '400px', margin: '100px auto' }}>
-        <h1>{UI_COPY.login.title}</h1>
-        <h2>{UI_COPY.login.subtitle}</h2>
+    <Layout title={UI_COPY.login.title} subtitle={UI_COPY.login.subtitle}>
+      <div className="card" style={{ maxWidth: '420px', margin: '0 auto' }}>
+        <h2 className="section-title">Acceso</h2>
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -86,7 +86,7 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
           <p>{UI_COPY.login.analistaAccount}</p>
         </div>
       </div>
-    </div>
+    </Layout>
   )
 }
 
