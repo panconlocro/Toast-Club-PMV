@@ -332,6 +332,7 @@ function SessionList({ sessions }) {
             <h3 style={{ margin: 0 }}>{UI_COPY.sessionList.surveyResultsTitle} - {selectedSurvey.participantName}</h3>
             <button
               onClick={closeModal}
+              aria-label={UI_COPY.common.close}
               style={{
                 background: 'none',
                 border: 'none',
