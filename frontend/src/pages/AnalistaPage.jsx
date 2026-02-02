@@ -19,6 +19,7 @@ function AnalistaPage() {
   const loadDataset = async () => {
     try {
       setLoading(true)
+      setError('')
       const data = await datasetAPI.getDataset()
       setDataset(data)
     } catch (err) {
@@ -51,7 +52,12 @@ function AnalistaPage() {
 
       {error && (
         <Card>
-          <InlineMessage variant="error">{error}</InlineMessage>
+          <InlineMessage variant="error">
+            {error}
+            <Button variant="secondary" size="sm" onClick={loadDataset}>
+              {UI_COPY.common.retry}
+            </Button>
+          </InlineMessage>
         </Card>
       )}
 

@@ -30,55 +30,71 @@ function SessionForm({ onSessionCreated }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [textsLoading, setTextsLoading] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [textError, setTextError] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [lastFilters, setLastFilters] = useState(null)
 
   const normalizeText = (value) => value
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
 
+  const fetchInitialData = async () => {
+    setTextsLoading(true)
+    setTextError('')
+    setLastFilters(null)
+
+    try {
+      const [textsResponse, tagsResponse] = await Promise.all([
+        textsAPI.getTexts(),
+        textsAPI.getTags()
+      ])
+      setAvailableTexts(textsResponse.texts || [])
+      setAvailableTags(tagsResponse || { keys: [], values: {} })
+    } catch (err) {
+      console.error('Failed to fetch texts:', err)
+      setTextError(UI_COPY.sessionForm.loadTextsError)
+    } finally {
+      setTextsLoading(false)
+    }
+  }
+
+  const fetchTexts = async (filters) => {
+    setTextsLoading(true)
+    setTextError('')
+    setLastFilters(filters)
+
+    try {
+      const response = await textsAPI.getTexts(filters)
+      setAvailableTexts(response.texts || [])
+    } catch (err) {
+      console.error('Failed to fetch texts:', err)
+      setTextError(UI_COPY.sessionForm.loadTextsError)
+    } finally {
+      setTextsLoading(false)
+    }
+  }
+
+  const handleRetryTexts = () => {
+    if (lastFilters) {
+      fetchTexts(lastFilters)
+    } else {
+      fetchInitialData()
+    }
+  }
+
   // Fetch available texts on mount
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [textsResponse, tagsResponse] = await Promise.all([
-          textsAPI.getTexts(),
-          textsAPI.getTags()
-        ])
-        setAvailableTexts(textsResponse.texts || [])
-        setAvailableTags(tagsResponse || { keys: [], values: {} })
-      } catch (err) {
-        console.error('Failed to fetch texts:', err)
-        setError(UI_COPY.sessionForm.loadTextsError)
-      } finally {
-        setTextsLoading(false)
-      }
-    }
     fetchInitialData()
   }, [])
 
   // Fetch texts when tag filters change
   useEffect(() => {
-    const fetchFilteredTexts = async () => {
-      setTextsLoading(true)
-      setError('')
+    const filters = Object.fromEntries(
+      Object.entries(tagFilters).filter(([, value]) => value)
+    )
 
-      const filters = Object.fromEntries(
-        Object.entries(tagFilters).filter(([, value]) => value)
-      )
-
-      try {
-        const response = await textsAPI.getTexts(filters)
-        setAvailableTexts(response.texts || [])
-      } catch (err) {
-        console.error('Failed to fetch texts:', err)
-        setError(UI_COPY.sessionForm.loadTextsError)
-      } finally {
-        setTextsLoading(false)
-      }
-    }
-
-    fetchFilteredTexts()
+    fetchTexts(filters)
   }, [tagFilters])
 
   const handleChange = (e) => {
@@ -99,7 +115,7 @@ function SessionForm({ onSessionCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
+    setSubmitError('')
     setLoading(true)
 
     try {
@@ -123,7 +139,7 @@ function SessionForm({ onSessionCreated }) {
         texto_seleccionado_id: ''
       })
     } catch (err) {
-      setError(err.response?.data?.detail || UI_COPY.sessionForm.createError)
+      setSubmitError(err.response?.data?.detail || UI_COPY.sessionForm.createError)
     } finally {
       setLoading(false)
     }
@@ -300,7 +316,16 @@ function SessionForm({ onSessionCreated }) {
           </div>
         )}
 
-        {error && <InlineMessage variant="error">{error}</InlineMessage>}
+        {textError && (
+          <InlineMessage variant="error">
+            {textError}
+            <Button type="button" variant="secondary" size="sm" onClick={handleRetryTexts}>
+              {UI_COPY.common.retry}
+            </Button>
+          </InlineMessage>
+        )}
+
+        {submitError && <InlineMessage variant="error">{submitError}</InlineMessage>}
 
         <Button type="submit" variant="primary" disabled={loading || textsLoading}>
           {loading ? UI_COPY.sessionForm.creating : UI_COPY.sessionForm.create}

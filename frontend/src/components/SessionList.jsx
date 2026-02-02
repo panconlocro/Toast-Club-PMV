@@ -12,7 +12,7 @@ function SessionList({ sessions }) {
   const [recordingLinks, setRecordingLinks] = useState({})
 
   if (!sessions || sessions.length === 0) {
-    return <p>{UI_COPY.sessionList.noSessions}</p>
+    return <InlineMessage variant="info">{UI_COPY.sessionList.noSessions}</InlineMessage>
   }
 
   const getStateLabel = (estado) => {

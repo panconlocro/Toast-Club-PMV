@@ -8,7 +8,8 @@ export const UI_COPY = {
     notAvailable: 'No disponible',
     noData: 'Sin datos',
     optional: 'Opcional',
-    close: 'Cerrar'
+    close: 'Cerrar',
+    retry: 'Reintentar'
   },
   login: {
     title: 'Toast Club PMV',
