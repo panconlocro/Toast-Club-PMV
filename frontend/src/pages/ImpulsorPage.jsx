@@ -177,6 +177,7 @@ function ImpulsorPage() {
               variant="secondary"
               size="sm"
               onClick={handleCopySessionCode}
+              aria-label={`${UI_COPY.impulsor.copy}: ${currentSession.session_code}`}
               style={{ marginLeft: '8px' }}
             >
               {UI_COPY.impulsor.copy}

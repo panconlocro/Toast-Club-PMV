@@ -116,6 +116,9 @@ function SessionForm({ onSessionCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (loading) {
+      return
+    }
     setSubmitError('')
     setLoading(true)
 
@@ -218,37 +221,34 @@ function SessionForm({ onSessionCreated }) {
         />
 
         {(availableTags.keys || []).length > 0 && (
-          <div className="form-group">
-            <label>{UI_COPY.sessionForm.tagFilters}</label>
-            <div
-              style={{
-                display: 'grid',
-                gap: '0.5rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                alignItems: 'start'
-              }}
-            >
+          <fieldset className="ui-fieldset">
+            <legend className="ui-legend">{UI_COPY.sessionForm.tagFilters}</legend>
+            <div className="tag-filters-grid">
               {tagConfigs
                 .filter(({ key }) => availableTags.keys.includes(key))
-                .map(({ key, label }) => (
-                  <div key={key} style={{ display: 'grid', gap: '0.25rem' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{label}</span>
-                    <Select
-                      name={key}
-                      value={tagFilters[key]}
-                      onChange={handleTagFilterChange}
-                    >
-                      <option value="">{UI_COPY.sessionForm.anyOption}</option>
-                      {(availableTags.values?.[key] || []).map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                ))}
+                .map(({ key, label }) => {
+                  const fieldId = `tag-filter-${key}`
+                  return (
+                    <div key={key} className="tag-filter-item">
+                      <Select
+                        id={fieldId}
+                        name={key}
+                        label={label}
+                        value={tagFilters[key]}
+                        onChange={handleTagFilterChange}
+                      >
+                        <option value="">{UI_COPY.sessionForm.anyOption}</option>
+                        {(availableTags.values?.[key] || []).map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  )
+                })}
             </div>
-          </div>
+          </fieldset>
         )}
 
         <Input
@@ -268,7 +268,7 @@ function SessionForm({ onSessionCreated }) {
               <Spinner label={UI_COPY.common.loading} />
               {UI_COPY.sessionForm.loadingTexts}
             </InlineMessage>
-          ) : (
+          ) : textError ? null : (
             filteredTexts.length > 0 ? (
               <Select
                 id="texto_seleccionado_id"
@@ -292,15 +292,9 @@ function SessionForm({ onSessionCreated }) {
 
         {/* Show text metadata when selected */}
         {selectedText && selectedText.Tags && (
-          <div className="text-preview" style={{ 
-            marginBottom: '1rem', 
-            padding: '0.75rem', 
-            backgroundColor: '#f5f5f5', 
-            borderRadius: '4px',
-            fontSize: '0.9rem'
-          }}>
+          <div className="text-preview">
             <strong>{UI_COPY.sessionForm.textInfoTitle}:</strong>
-            <ul style={{ margin: '0.5rem 0 0 1rem', padding: 0 }}>
+            <ul className="text-preview__list">
               {selectedText.Tags.duracion_aprox && (
                 <li>{UI_COPY.sessionForm.duration}: {selectedText.Tags.duracion_aprox}</li>
               )}

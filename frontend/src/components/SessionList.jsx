@@ -331,15 +331,10 @@ function SessionList({ sessions }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ margin: 0 }}>{UI_COPY.sessionList.surveyResultsTitle} - {selectedSurvey.participantName}</h3>
             <button
+              type="button"
+              className="ui-icon-button"
               onClick={closeModal}
               aria-label={UI_COPY.common.close}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                color: '#666'
-              }}
             >
               ×
             </button>

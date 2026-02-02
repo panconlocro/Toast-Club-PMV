@@ -89,6 +89,7 @@ function AnalistaPage() {
           <strong>{UI_COPY.analista.filtersTitle}</strong>
           <div style={{ display: 'grid', gap: '12px', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Select
+              id="filter-state"
               label={UI_COPY.analista.filterState}
               value={stateFilter}
               onChange={(event) => setStateFilter(event.target.value)}
@@ -99,6 +100,7 @@ function AnalistaPage() {
               ))}
             </Select>
             <Input
+              id="filter-code"
               label={UI_COPY.analista.filterCode}
               value={codeQuery}
               onChange={(event) => setCodeQuery(event.target.value)}

@@ -29,6 +29,9 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (loading) {
+      return
+    }
     setError('')
     setLoading(true)
 
