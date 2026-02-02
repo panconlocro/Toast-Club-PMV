@@ -158,12 +158,10 @@ function SessionList({ sessions }) {
       <thead>
         <tr>
           <th>{UI_COPY.sessionList.sessionCode}</th>
-          <th>{UI_COPY.sessionList.participant}</th>
-          <th>{UI_COPY.sessionList.age}</th>
-          <th>{UI_COPY.sessionList.state}</th>
           <th>{UI_COPY.sessionList.createdAt}</th>
-          <th>{UI_COPY.sessionList.recordings}</th>
-          <th>{UI_COPY.sessionList.surveys}</th>
+          <th>{UI_COPY.sessionList.state}</th>
+          <th>{UI_COPY.sessionList.audio}</th>
+          <th>{UI_COPY.sessionList.survey}</th>
           <th>{UI_COPY.sessionList.details}</th>
         </tr>
       </thead>
@@ -172,8 +170,7 @@ function SessionList({ sessions }) {
           <Fragment key={session.session_id}>
             <tr>
               <td><strong>{session.session_code}</strong></td>
-              <td>{session.participant_name}</td>
-              <td>{session.participant_age || UI_COPY.common.notAvailable}</td>
+              <td>{new Date(session.created_at).toLocaleString()}</td>
               <td>
                 <span style={{
                   backgroundColor: getStateColor(session.estado),
@@ -185,21 +182,9 @@ function SessionList({ sessions }) {
                   {getStateLabel(session.estado)}
                 </span>
               </td>
-              <td>{new Date(session.created_at).toLocaleString()}</td>
-              <td>{session.recordings_count}</td>
+              <td>{session.recordings_count > 0 ? UI_COPY.sessionList.yes : UI_COPY.sessionList.no}</td>
               <td>
-                {session.surveys_count > 0 ? (
-                  <Button
-                    onClick={() => handleViewSurveys(session.session_id, session.participant_name)}
-                    variant="secondary"
-                    size="sm"
-                    disabled={surveyLoading}
-                  >
-                    {surveyLoading ? UI_COPY.sessionList.loading : UI_COPY.sessionList.moreDetails}
-                  </Button>
-                ) : (
-                  <span style={{ color: '#6c757d', fontSize: '12px' }}>{UI_COPY.sessionList.noSurveys}</span>
-                )}
+                {session.surveys_count > 0 ? UI_COPY.sessionList.yes : UI_COPY.sessionList.no}
               </td>
               <td>
                 <Button
@@ -209,11 +194,22 @@ function SessionList({ sessions }) {
                 >
                   {expandedSessionId === session.session_id ? UI_COPY.sessionList.hide : UI_COPY.sessionList.view}
                 </Button>
+                {session.surveys_count > 0 && (
+                  <Button
+                    onClick={() => handleViewSurveys(session.session_id, session.participant_name)}
+                    variant="secondary"
+                    size="sm"
+                    disabled={surveyLoading}
+                    style={{ marginLeft: '8px' }}
+                  >
+                    {surveyLoading ? UI_COPY.sessionList.loading : UI_COPY.sessionList.moreDetails}
+                  </Button>
+                )}
               </td>
             </tr>
             {expandedSessionId === session.session_id && (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={6}>
                   <div style={{
                     backgroundColor: '#f8f9fa',
                     borderRadius: '8px',
