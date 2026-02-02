@@ -3,6 +3,7 @@ import { sessionsAPI, recordingsAPI } from '../api/sessions'
 import { UI_COPY } from '../uiCopy'
 import Button from './ui/Button'
 import InlineMessage from './ui/InlineMessage'
+import { mapApiError } from '../api/errors'
 
 function SessionList({ sessions }) {
   const [selectedSurvey, setSelectedSurvey] = useState(null)
@@ -38,7 +39,7 @@ function SessionList({ sessions }) {
       const surveys = await sessionsAPI.getSurveys(sessionId)
       setSelectedSurvey({ surveys, participantName })
     } catch (err) {
-      setSurveyError(err.response?.data?.detail || UI_COPY.sessionList.surveyLoadError)
+      setSurveyError(mapApiError(err, UI_COPY.sessionList.surveyLoadError))
     } finally {
       setSurveyLoading(false)
     }
@@ -74,7 +75,7 @@ function SessionList({ sessions }) {
         [recordingId]: {
           url: '',
           loading: false,
-          error: err.response?.data?.detail || UI_COPY.sessionList.recordingLoadError
+          error: mapApiError(err, UI_COPY.sessionList.recordingLoadError)
         }
       }))
       return ''

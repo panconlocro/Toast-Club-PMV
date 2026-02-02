@@ -6,6 +6,7 @@ import Select from './ui/Select'
 import Input from './ui/Input'
 import Button from './ui/Button'
 import InlineMessage from './ui/InlineMessage'
+import { mapApiError } from '../api/errors'
 
 function SurveyForm({ sessionId, onSurveySubmitted }) {
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ function SurveyForm({ sessionId, onSurveySubmitted }) {
       await sessionsAPI.submitSurvey(sessionId, formData)
       onSurveySubmitted()
     } catch (err) {
-      setError(err.response?.data?.detail || UI_COPY.surveyForm.submitError)
+      setError(mapApiError(err, UI_COPY.surveyForm.submitError))
     } finally {
       setLoading(false)
     }

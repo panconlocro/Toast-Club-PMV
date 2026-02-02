@@ -8,6 +8,7 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import InlineMessage from '../components/ui/InlineMessage'
 import Spinner from '../components/ui/Spinner'
+import { mapApiError } from '../api/errors'
 
 function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
@@ -84,7 +85,7 @@ function ImpulsorPage() {
       const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'running')
       setCurrentSession(updatedSession)
     } catch (error) {
-      setMessage(`${UI_COPY.impulsor.startError}: ${error.response?.data?.detail || error.message}`)
+      setMessage(`${UI_COPY.impulsor.startError}: ${mapApiError(error)}`)
     }
   }
 
@@ -93,7 +94,7 @@ function ImpulsorPage() {
       const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'survey_pending')
       setCurrentSession(updatedSession)
     } catch (error) {
-      setMessage(`${UI_COPY.impulsor.continueError}: ${error.response?.data?.detail || error.message}`)
+      setMessage(`${UI_COPY.impulsor.continueError}: ${mapApiError(error)}`)
     }
   }
 

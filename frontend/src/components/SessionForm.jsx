@@ -7,6 +7,7 @@ import Select from './ui/Select'
 import Button from './ui/Button'
 import InlineMessage from './ui/InlineMessage'
 import Spinner from './ui/Spinner'
+import { mapApiError } from '../api/errors'
 
 function SessionForm({ onSessionCreated }) {
   const [formData, setFormData] = useState({
@@ -53,7 +54,7 @@ function SessionForm({ onSessionCreated }) {
       setAvailableTags(tagsResponse || { keys: [], values: {} })
     } catch (err) {
       console.error('Failed to fetch texts:', err)
-      setTextError(UI_COPY.sessionForm.loadTextsError)
+      setTextError(mapApiError(err, UI_COPY.sessionForm.loadTextsError))
     } finally {
       setTextsLoading(false)
     }
@@ -69,7 +70,7 @@ function SessionForm({ onSessionCreated }) {
       setAvailableTexts(response.texts || [])
     } catch (err) {
       console.error('Failed to fetch texts:', err)
-      setTextError(UI_COPY.sessionForm.loadTextsError)
+      setTextError(mapApiError(err, UI_COPY.sessionForm.loadTextsError))
     } finally {
       setTextsLoading(false)
     }
@@ -139,7 +140,7 @@ function SessionForm({ onSessionCreated }) {
         texto_seleccionado_id: ''
       })
     } catch (err) {
-      setSubmitError(err.response?.data?.detail || UI_COPY.sessionForm.createError)
+      setSubmitError(mapApiError(err, UI_COPY.sessionForm.createError))
     } finally {
       setLoading(false)
     }

@@ -8,6 +8,7 @@ import Button from '../components/ui/Button'
 import InlineMessage from '../components/ui/InlineMessage'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
+import { mapApiError } from '../api/errors'
 
 function AnalistaPage() {
   const [dataset, setDataset] = useState(null)
@@ -27,7 +28,7 @@ function AnalistaPage() {
       const data = await datasetAPI.getDataset()
       setDataset(data)
     } catch (err) {
-      setError(err.response?.data?.detail || UI_COPY.analista.datasetError)
+      setError(mapApiError(err, UI_COPY.analista.datasetError))
     } finally {
       setLoading(false)
     }
@@ -47,7 +48,7 @@ function AnalistaPage() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } catch (err) {
-      setError(err.response?.data?.detail || UI_COPY.analista.exportError)
+      setError(mapApiError(err, UI_COPY.analista.exportError))
     }
   }
 

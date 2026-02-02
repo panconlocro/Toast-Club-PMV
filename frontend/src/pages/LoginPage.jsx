@@ -7,6 +7,7 @@ import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import InlineMessage from '../components/ui/InlineMessage'
+import { mapApiError } from '../api/errors'
 
 function LoginPage({ setIsAuthenticated, setUserRole }) {
   const [email, setEmail] = useState('')
@@ -37,7 +38,7 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
         navigate('/analista')
       }
     } catch (err) {
-      setError(err.response?.data?.detail || UI_COPY.login.error)
+      setError(mapApiError(err, UI_COPY.login.error))
     } finally {
       setLoading(false)
     }
