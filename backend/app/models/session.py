@@ -15,7 +15,7 @@ class Session(Base):
     
     # Participant data
     datos_participante = Column(JSON, nullable=False)  # {nombre, edad_aproximada, email_opcional}
-    texto_seleccionado = Column(String, nullable=False)
+    texto_seleccionado = Column(JSON, nullable=False)
     
     # State management
     estado = Column(String, nullable=False, default=SessionState.CREATED.value)

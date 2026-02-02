@@ -122,6 +122,12 @@ Toast-Club-PMV/
 ### Grabaciones
 - `POST /api/v1/sessions/{id}/recording` - Crear grabación
 - `POST /api/v1/sessions/{id}/upload` - Subir archivo
+- `GET /api/v1/recordings/{recording_id}/download` - URL presignada (ANALISTA)
+
+### Textos
+- `GET /api/v1/texts` - Listar textos (con filtros por tags)
+- `GET /api/v1/texts/{id}` - Detalle de texto (páginas normalizadas desde la 3ra)
+- `GET /api/v1/texts/tags` - Índice de tags disponibles
 
 ### Encuestas
 - `POST /api/v1/sessions/{id}/survey` - Enviar encuesta

@@ -8,6 +8,7 @@ from ...models.session import Session as SessionModel
 from ...models.recording import Recording
 from ...models.survey import Survey
 from ...core.security import get_current_user_role
+from ...core.time import to_local_iso
 import json
 import io
 
@@ -52,7 +53,14 @@ def get_dataset(
         
         # Get recordings data
         recordings = db.query(Recording).filter(Recording.session_id == session.id).all()
-        recording_urls = [rec.audio_url for rec in recordings]
+        recording_items = [
+            {
+                "id": rec.id,
+                "audio_url": rec.audio_url,
+                "created_at": to_local_iso(rec.created_at) or ""
+            }
+            for rec in recordings
+        ]
         
         # Get survey data
         surveys = db.query(Survey).filter(Survey.session_id == session.id).all()
@@ -66,9 +74,9 @@ def get_dataset(
             "participant_email": session.datos_participante.get("email_opcional"),
             "texto_seleccionado": session.texto_seleccionado,
             "estado": session.estado,
-            "created_at": session.created_at.isoformat() if session.created_at else "",
+            "created_at": to_local_iso(session.created_at) or "",
             "recordings_count": recordings_count,
-            "recordings": recording_urls,
+            "recordings": recording_items,
             "surveys_count": surveys_count,
             "survey_responses": survey_responses
         }
@@ -106,7 +114,7 @@ def export_dataset_csv(
         csv_content += f"\"{session.datos_participante.get('email_opcional', '')}\"," 
         csv_content += f"\"{session.texto_seleccionado}\","
         csv_content += f"{session.estado},"
-        csv_content += f"{session.created_at.isoformat() if session.created_at else ''},"
+        csv_content += f"{(to_local_iso(session.created_at) or '')},"
         csv_content += f"{recordings_count},{surveys_count}\n"
     
     # Return as downloadable CSV

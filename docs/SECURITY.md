@@ -1,71 +1,75 @@
-# Security Checklist for Production Deployment
+# Lista de verificación de seguridad para despliegue a producción
 
-## ⚠️ IMPORTANT: Before Deploying to Production
+## ⚠️ IMPORTANTE: antes de desplegar a producción
 
-This document outlines critical security considerations for deploying Toast Club PMV to production.
+Este documento resume consideraciones críticas de seguridad para desplegar Toast Club PMV a producción.
 
-## 🔒 Authentication & Secrets
+## 🔒 Autenticación y secretos
 
-### Secret Key (CRITICAL)
-- [ ] **Change `SECRET_KEY`** in `.env` file
-- [ ] Generate a cryptographically secure key:
+### Clave secreta (CRÍTICO)
+- [ ] **Cambiar `SECRET_KEY`** en el archivo `.env`
+- [ ] Generar una clave criptográficamente segura:
   ```bash
   python -c "import secrets; print(secrets.token_urlsafe(32))"
   ```
-- [ ] Never commit the production secret key to version control
-- [ ] Use environment variables or secret management systems
+- [ ] Nunca commitear la clave secreta de producción al repositorio
+- [ ] Usar variables de entorno o un sistema de gestión de secretos
 
-### Passwords
-- [ ] **Change default user passwords**
-- [ ] Use strong passwords (min 12 characters, mixed case, numbers, symbols)
-- [ ] Consider implementing password complexity requirements
-- [ ] Add password reset functionality
+### Contraseñas
 
-### Database Credentials
-- [ ] **Change default PostgreSQL credentials**
-- [ ] Use strong, unique passwords
-- [ ] Don't use default usernames like 'postgres' or 'toastclub'
-- [ ] Restrict database access to backend only
+- [ ] **Cambiar contraseñas por defecto**
+- [ ] Usar contraseñas fuertes (mínimo 12 caracteres, mayúsculas/minúsculas, números, símbolos)
+- [ ] Considerar reglas de complejidad
+- [ ] Implementar restablecimiento de contraseña
 
-## 🌐 CORS Configuration
+### Credenciales de base de datos
 
-### Current Development Setting
+- [ ] **Cambiar credenciales por defecto de PostgreSQL**
+- [ ] Usar contraseñas fuertes y únicas
+- [ ] Evitar usuarios por defecto como 'postgres' o 'toastclub'
+- [ ] Restringir el acceso a la DB solo al backend
+
+## 🌐 Configuración CORS
+
+### Configuración actual (desarrollo)
 ```python
 CORS_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]
 ```
 
-### Production Configuration
-- [ ] Update `CORS_ORIGINS` to your actual domain(s)
-- [ ] Never use `["*"]` (allow all origins) in production
-- [ ] Include only HTTPS URLs
-- [ ] Example:
+### Configuración en producción
+
+- [ ] Actualizar `CORS_ORIGINS` a tus dominios reales
+- [ ] Nunca usar `["*"]` (permitir todos los orígenes) en producción
+- [ ] Incluir solo URLs HTTPS
+- [ ] Ejemplo:
   ```python
   CORS_ORIGINS = ["https://yourdomain.com", "https://app.yourdomain.com"]
   ```
 
 ## 🔐 HTTPS/SSL
 
-- [ ] **Enable HTTPS** for all production traffic
-- [ ] Obtain SSL/TLS certificate (Let's Encrypt, etc.)
-- [ ] Redirect all HTTP traffic to HTTPS
-- [ ] Configure reverse proxy (Nginx, Caddy, etc.)
-- [ ] Set secure cookie flags:
+- [ ] **Habilitar HTTPS** para todo el tráfico en producción
+- [ ] Obtener certificado SSL/TLS (Let's Encrypt, etc.)
+- [ ] Redirigir HTTP → HTTPS
+- [ ] Configurar proxy inverso (Nginx, Caddy, etc.)
+- [ ] Activar atributos de cookies seguras (si aplica):
   ```python
   SESSION_COOKIE_SECURE = True
   CSRF_COOKIE_SECURE = True
   ```
 
-## 🛡️ Headers & Middleware
+## 🛡️ Headers y middleware
 
-### Security Headers
-Add these headers to your reverse proxy or FastAPI middleware:
+### Encabezados de seguridad
+
+Agregar estos encabezados al proxy inverso o middleware:
 - [ ] `Strict-Transport-Security` (HSTS)
 - [ ] `X-Content-Type-Options: nosniff`
 - [ ] `X-Frame-Options: DENY`
 - [ ] `X-XSS-Protection: 1; mode=block`
 - [ ] `Content-Security-Policy`
 
-Example Nginx configuration:
+Ejemplo Nginx:
 ```nginx
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 add_header X-Content-Type-Options "nosniff" always;
@@ -73,18 +77,19 @@ add_header X-Frame-Options "DENY" always;
 add_header X-XSS-Protection "1; mode=block" always;
 ```
 
-## 🚦 Rate Limiting
+## 🚦 Limitación de solicitudes
 
-### API Rate Limiting
-- [ ] Implement rate limiting on authentication endpoints
-- [ ] Limit login attempts (e.g., 5 per minute per IP)
-- [ ] Rate limit session creation
-- [ ] Consider using tools like:
+### Limitación de solicitudes a nivel API
+
+- [ ] Implementar limitación de solicitudes en endpoints de autenticación
+- [ ] Limitar intentos de inicio de sesión (ej. 5/min por IP)
+- [ ] Limitar creación de sesiones
+- [ ] Considerar:
   - slowapi (FastAPI)
-  - Redis-based rate limiting
-  - Nginx rate limiting
+  - limitación de solicitudes con Redis
+  - limitación de solicitudes en Nginx
 
-Example:
+Ejemplo:
 ```python
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -97,100 +102,112 @@ async def login(...):
     ...
 ```
 
-## 📝 Logging & Monitoring
+## 📝 Registro y monitoreo
 
-### Logging
-- [ ] **Disable SQL query logging** in production (`echo=False` in database config)
-- [ ] Log authentication events (login, logout, failures)
-- [ ] Log state transitions
-- [ ] Don't log sensitive data (passwords, tokens, PII)
-- [ ] Set up log rotation
+### Registro
 
-### Monitoring
-- [ ] Monitor failed login attempts
-- [ ] Alert on unusual activity patterns
-- [ ] Track API error rates
-- [ ] Monitor database performance
+- [ ] **Deshabilitar logs de consultas SQL** en producción (`echo=False`)
+- [ ] Registrar eventos de auth (inicio de sesión, cierre de sesión, fallos)
+- [ ] Registrar transiciones de estado
+- [ ] No registrar datos sensibles (contraseñas, tokens, PII)
+- [ ] Rotación de logs
 
-## 🗄️ Database Security
+### Monitoreo
 
-### PostgreSQL Configuration
-- [ ] Use PostgreSQL (not SQLite) in production
-- [ ] Enable SSL connections
-- [ ] Restrict network access (firewall rules)
-- [ ] Regular backups
-- [ ] Encrypt backups
-- [ ] Test restore procedures
+- [ ] Monitorear intentos de inicio de sesión fallidos
+- [ ] Alertar ante patrones anómalos
+- [ ] Métricas de errores del API
+- [ ] Rendimiento de base de datos
 
-### Connection Security
+## 🗄️ Seguridad de base de datos
+
+### Configuración PostgreSQL
+
+- [ ] Usar PostgreSQL (no SQLite) en producción
+- [ ] Habilitar SSL
+- [ ] Restringir acceso de red (firewall)
+- [ ] Copias de seguridad regulares
+- [ ] Cifrar copias de seguridad
+- [ ] Probar restauraciones
+
+### Seguridad de conexión
 ```python
-# Example DATABASE_URL with SSL
+# Ejemplo de DATABASE_URL con SSL
 DATABASE_URL = "postgresql://user:pass@host:5432/dbname?sslmode=require"
 ```
 
-## 📁 File Upload Security
+## 📁 Seguridad de subida de archivos
 
-### Audio File Uploads (Future Implementation)
-- [ ] Validate file types (whitelist extensions)
-- [ ] Limit file size (MAX_AUDIO_SIZE_MB)
-- [ ] Scan for malware
-- [ ] Store files outside webroot
-- [ ] Use cloud storage (S3, GCS) with signed URLs
-- [ ] Generate unique filenames (prevent overwrites)
-- [ ] Set proper file permissions
+### Subida de audio (implementación actual)
 
-Example validation:
+Actualmente el audio se sube al backend vía `multipart/form-data` y el backend lo guarda en **Cloudflare R2 (bucket privado)**. La BD guarda una **key** (no una URL pública) y la descarga se realiza mediante **URLs presignadas** (solo rol `ANALISTA`).
+
+Lista de verificación de endurecimiento recomendado:
+
+- [ ] Validar tipos de archivo (extensiones permitidas)
+- [ ] Limitar tamaño de archivo
+- [ ] Validar tipo MIME
+- [ ] Generar nombres únicos
+- [ ] Evitar exponer el bucket públicamente
+- [ ] Expirar URLs presignadas en poco tiempo
+- [ ] Auditar accesos y descargas
+
+Ejemplo de validación:
 ```python
 ALLOWED_EXTENSIONS = {'.wav', '.mp3', '.m4a'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 
 def validate_audio_file(file):
-    # Check extension
-    # Check size
-    # Verify MIME type
-    # Scan content
+  # Verificar extensión
+  # Verificar tamaño
+    # Verificar tipo MIME
+  # Escanear contenido
 ```
 
-## 🔑 JWT Token Security
+## 🔑 Seguridad de tokens JWT
 
-### Token Configuration
-- [ ] Set appropriate token expiration (ACCESS_TOKEN_EXPIRE_MINUTES)
-- [ ] Consider refresh tokens for long-lived sessions
-- [ ] Implement token revocation/blacklist
-- [ ] Store tokens securely on client (not localStorage for sensitive apps)
+### Configuración de tokens
 
-### Token Validation
+- [ ] Definir expiración adecuada (ACCESS_TOKEN_EXPIRE_MINUTES)
+- [ ] Considerar refresh tokens
+- [ ] Revocación/blacklist (si aplica)
+- [ ] Almacenar tokens de forma segura en el cliente (evitar localStorage en apps sensibles)
+
+### Validación del token
 ```python
 # Current implementation validates:
 - Token signature
 - Token expiration
 - User existence
 
-# Consider adding:
+# Considerar agregar:
 - Token revocation check
 - Device fingerprinting
 - IP validation
 ```
 
-## 🚫 Input Validation
+## 🚫 Validación de inputs
 
-### Backend Validation
-- [ ] All Pydantic models validate input
-- [ ] Email format validation (already implemented)
-- [ ] Age range validation (1-120)
-- [ ] Text length limits
-- [ ] SQL injection prevention (SQLAlchemy parameterized queries ✅)
+### Backend
 
-### Frontend Validation
-- [ ] Client-side validation for UX
-- [ ] Never trust client input
-- [ ] Always validate on backend
+- [ ] Modelos Pydantic validan inputs
+- [ ] Validación de email (ya implementada)
+- [ ] Validación de rango de edad (1-120)
+- [ ] Límites de longitud
+- [ ] Prevención de SQL injection (SQLAlchemy con queries parametrizadas ✅)
 
-## 🔍 Code Security
+### Frontend
 
-### Dependencies
-- [ ] Keep dependencies updated
-- [ ] Run security audits:
+- [ ] Validación client-side para UX
+- [ ] Nunca confiar en el input del cliente
+- [ ] Validar siempre en backend
+
+## 🔍 Seguridad de código
+
+### Dependencias
+
+- [ ] Mantener dependencias actualizadas
+- [ ] Correr auditorías:
   ```bash
   # Python
   pip install safety
@@ -199,81 +216,90 @@ def validate_audio_file(file):
   # Node.js
   npm audit
   ```
-- [ ] Subscribe to security advisories
+  
+- [ ] Suscribirse a avisos de seguridad
 
-### Code Review
-- [ ] Review code for security issues
-- [ ] Use static analysis tools (Bandit, ESLint)
-- [ ] Scan for secrets in git history
+### Revisión de código
 
-## 🧪 Testing
+- [ ] Revisar código por problemas de seguridad
+- [ ] Usar herramientas de análisis (Bandit, ESLint)
+- [ ] Buscar secretos en el historial git
 
-### Security Testing
-- [ ] Test authentication flows
-- [ ] Test authorization (role checks)
-- [ ] Test state machine transitions
-- [ ] Test input validation
-- [ ] Penetration testing (if budget allows)
+## 🧪 Pruebas
 
-## 📊 Data Privacy
+### Seguridad
 
-### GDPR/Privacy Compliance (if applicable)
-- [ ] Privacy policy
-- [ ] Data retention policy
-- [ ] User consent mechanisms
-- [ ] Data export functionality
-- [ ] Data deletion functionality
-- [ ] Encrypt sensitive data at rest
+- [ ] Probar auth
+- [ ] Probar autorización (roles)
+- [ ] Probar transiciones de estado
+- [ ] Probar validación de inputs
+- [ ] Pruebas de penetración (si aplica)
 
-### PII Handling
-Currently storing:
-- Names
-- Ages (approximate)
-- Emails (optional)
-- Audio recordings
+## 📊 Privacidad de datos
 
-- [ ] Inform users about data collection
-- [ ] Provide data access/deletion options
-- [ ] Minimize data collection
-- [ ] Secure data transmission
+### GDPR / cumplimiento (si aplica)
 
-## 🐳 Docker Security
+- [ ] Política de privacidad
+- [ ] Retención de datos
+- [ ] Consentimiento del usuario
+- [ ] Exportación de datos
+- [ ] Borrado de datos
+- [ ] Encriptar datos sensibles en reposo
 
-### Container Security
-- [ ] Use specific image versions (not `latest`)
-- [ ] Scan images for vulnerabilities:
+### Manejo de PII
+
+Actualmente se almacena:
+
+- Nombres
+- Edades (aproximadas)
+- Emails (opcional)
+- Grabaciones de audio
+
+- [ ] Informar a usuarios sobre la recolección
+- [ ] Ofrecer opciones de acceso/borrado
+- [ ] Minimizar datos
+- [ ] Asegurar transmisión
+
+## 🐳 Seguridad Docker
+
+### Contenedores
+
+- [ ] Usar versiones específicas (no `latest`)
+- [ ] Escanear imágenes:
   ```bash
   docker scan toastclub-backend
   docker scan toastclub-frontend
   ```
-- [ ] Run containers as non-root user
-- [ ] Limit container capabilities
-- [ ] Use Docker secrets for sensitive data
+- [ ] Ejecutar como usuario no root si es posible
+- [ ] Limitar capacidades
+- [ ] Usar Docker secrets para datos sensibles
 
-### Docker Compose Production
-- [ ] Use separate production compose file
-- [ ] Don't mount source code volumes
-- [ ] Use environment files securely
-- [ ] Limit exposed ports
+### Docker Compose en producción
 
-## 🌍 Deployment Environment
+- [ ] Evitar montar volúmenes con el código fuente
+- [ ] Manejar `.env`/secrets de forma segura
+- [ ] Exponer solo puertos necesarios
 
-### Server Hardening
-- [ ] Keep OS updated
-- [ ] Configure firewall (UFW, iptables)
-- [ ] Disable unnecessary services
-- [ ] SSH key-only authentication
-- [ ] Fail2ban or similar
-- [ ] Regular security updates
+## 🌍 Entorno de despliegue
 
-### Reverse Proxy
-- [ ] Use Nginx or Caddy as reverse proxy
-- [ ] Configure SSL/TLS properly
-- [ ] Set security headers
-- [ ] Rate limiting
-- [ ] Request size limits
+### Endurecimiento del servidor
 
-Example Nginx config:
+- [ ] Mantener OS actualizado
+- [ ] Configurar firewall
+- [ ] Deshabilitar servicios innecesarios
+- [ ] SSH con llaves
+- [ ] Fail2ban o similar
+- [ ] Actualizaciones regulares
+
+### Proxy inverso
+
+- [ ] Usar Nginx o Caddy
+- [ ] Configurar SSL/TLS
+- [ ] Encabezados de seguridad
+- [ ] Limitación de solicitudes
+- [ ] Límite de tamaño de solicitudes
+
+Ejemplo de configuración Nginx:
 ```nginx
 server {
     listen 443 ssl http2;
@@ -282,10 +308,10 @@ server {
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
     
-    # Security headers
+    # Encabezados de seguridad
     add_header Strict-Transport-Security "max-age=31536000" always;
     
-    # Backend proxy
+    # Proxy al backend
     location /api {
         proxy_pass http://localhost:8000;
         proxy_set_header X-Real-IP $remote_addr;
@@ -300,63 +326,67 @@ server {
 }
 ```
 
-## ✅ Pre-Deployment Checklist
+## ✅ Lista de verificación previa al despliegue
 
-Before deploying to production, verify:
+Antes de desplegar a producción, verificar:
 
-- [ ] SECRET_KEY changed
-- [ ] Database credentials changed
-- [ ] CORS_ORIGINS updated
-- [ ] HTTPS enabled
-- [ ] Security headers configured
-- [ ] Rate limiting implemented
-- [ ] SQL logging disabled
-- [ ] Backups configured
-- [ ] Monitoring set up
-- [ ] Dependencies updated
-- [ ] Security scan completed
-- [ ] Code review done
-- [ ] Testing completed
+- [ ] `SECRET_KEY` cambiado
+- [ ] Credenciales de base de datos cambiadas
+- [ ] `CORS_ORIGINS` actualizado
+- [ ] HTTPS habilitado
+- [ ] Encabezados de seguridad configurados
+- [ ] Limitación de solicitudes implementada
+- [ ] Registro SQL deshabilitado
+- [ ] Copias de seguridad configuradas
+- [ ] Monitoreo configurado
+- [ ] Dependencias actualizadas
+- [ ] Escaneo de seguridad completado
+- [ ] Revisión de código completada
+- [ ] Pruebas completadas
 
-## 🆘 Incident Response
+## 🆘 Respuesta a incidentes
 
-### If Security Breach Occurs:
-1. Isolate affected systems
-2. Change all credentials immediately
-3. Review logs for extent of breach
-4. Notify affected users (if PII exposed)
-5. Document incident
-6. Implement fixes
-7. Post-mortem analysis
+### Si ocurre un incidente:
 
-### Emergency Contacts
-- [ ] Define security incident response team
-- [ ] Prepare communication templates
-- [ ] Know legal requirements (data breach notifications)
+1. Aislar los sistemas afectados
+2. Cambiar credenciales inmediatamente
+3. Revisar logs para determinar el alcance
+4. Notificar a usuarios afectados (si hubo exposición de PII)
+5. Documentar el incidente
+6. Implementar correcciones
+7. Análisis post-mortem
 
-## 📚 Resources
+### Contactos de emergencia
+
+- [ ] Definir equipo de respuesta a incidentes
+- [ ] Preparar plantillas de comunicación
+- [ ] Conocer requisitos legales (notificaciones de brecha de seguridad)
+
+## 📚 Recursos
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/)
 - [React Security Best Practices](https://snyk.io/blog/10-react-security-best-practices/)
 - [Docker Security](https://docs.docker.com/engine/security/)
 
-## 🔄 Regular Maintenance
+## 🔄 Mantenimiento regular
 
-### Monthly
-- [ ] Review access logs
-- [ ] Update dependencies
-- [ ] Check for security advisories
-- [ ] Verify backups
+### Mensual
 
-### Quarterly
-- [ ] Security audit
-- [ ] Penetration testing (if applicable)
-- [ ] Review and update passwords
-- [ ] Review user permissions
+- [ ] Revisar logs de acceso
+- [ ] Actualizar dependencias
+- [ ] Revisar avisos de seguridad
+- [ ] Verificar copias de seguridad
+
+### Trimestral
+
+- [ ] Auditoría de seguridad
+- [ ] Pruebas de penetración (si aplica)
+- [ ] Revisar y actualizar contraseñas
+- [ ] Revisar permisos de usuarios
 
 ---
 
-**Remember: Security is an ongoing process, not a one-time task.**
+**Recuerda: la seguridad es un proceso continuo, no una tarea de una sola vez.**
 
-For questions or to report security issues, please contact the security team immediately.
+Para consultas o para reportar incidentes de seguridad, contactar al equipo de seguridad inmediatamente.

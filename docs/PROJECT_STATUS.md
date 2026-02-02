@@ -1,266 +1,182 @@
-# Toast Club PMV - Project Status
+# Toast Club PMV – Estado del proyecto
 
-**Status:** ✅ Complete and Ready for Use  
-**Version:** 0.1.0  
-**Date:** December 2025
+**Estado:** ✅ Completo y listo para uso  
+**Versión:** 0.1.0  
+**Fecha:** Diciembre 2025 (actualizado enero 2026)
 
-## Overview
+## Resumen
 
-Toast Club PMV is a complete, production-ready Minimum Viable Product for a VR communication training platform. The project includes a FastAPI backend, React frontend, and PostgreSQL database, all containerized with Docker.
+Toast Club PMV es un Producto Mínimo Viable para una plataforma de entrenamiento de comunicación en Realidad Virtual (RV). Incluye backend FastAPI, frontend React (Vite) y base PostgreSQL, con Docker Compose.
 
-## What's Included
+## Qué incluye
 
 ### ✅ Backend (FastAPI)
-- **API Endpoints**: All required endpoints implemented
-  - Authentication (login/logout)
-  - Session management (create, get, update state)
-  - Recording upload (mock implementation)
-  - Survey submission
-  - Dataset export (ANALISTA only)
-- **Database Models**: SQLAlchemy models for User, Session, Recording, Survey
-- **State Machine**: Validated session workflow transitions
-- **Security**: JWT authentication with role-based access
-- **Documentation**: Auto-generated API docs at `/docs`
+
+- **Endpoints API**: implementados
+   - Autenticación (inicio/cierre de sesión)
+   - Sesiones (crear, obtener, cambiar estado)
+   - Resolución de sesión por código (`/sessions/by-code/{session_code}`)
+   - Subida de audio real vía multipart (`/sessions/{session_id}/upload`)
+   - Descarga de audio por URL presignada (solo ANALISTA)
+   - Textos de entrenamiento con filtros por tags y catálogo de tags
+   - Normalización de textos para RV (desde la página 3)
+   - Envío de encuestas
+   - Dataset y exportación a CSV (solo ANALISTA)
+- **Modelos**: SQLAlchemy (User, Session, Recording, Survey)
+- **Máquina de estados**: validación de transiciones del flujo
+- **Seguridad**: JWT + control por rol
+- **Docs**: Swagger en `/docs`
 
 ### ✅ Frontend (React + Vite)
-- **Pages**:
-  - Login page with role-based routing
-  - IMPULSADOR dashboard (create and manage sessions)
-  - ANALISTA dashboard (view data, export CSV)
-- **Components**:
-  - SessionForm: Create training sessions
-  - SurveyForm: Collect participant feedback
-  - SessionList: Display sessions in table format
-- **API Integration**: Full API client with interceptors
-- **Routing**: React Router with protected routes
 
-### ✅ Infrastructure
-- **Docker Compose**: Multi-container setup
-  - PostgreSQL database
-  - FastAPI backend
-  - React frontend
-- **Environment Configuration**: `.env.example` with all required variables
-- **Build Files**: Dockerfiles for backend and frontend
+- **Páginas**:
+   - Inicio de sesión con ruteo por rol
+   - Dashboard IMPULSADOR (crear/gestionar sesiones)
+   - Dashboard ANALISTA (ver dataset/exportar)
+   - Filtros por tags y búsqueda por título en selección de textos
+   - Vista ANALISTA con preview y descarga de grabaciones
+- **Integración API**: cliente HTTP
+- **Ruteo**: rutas protegidas
 
-### ✅ Documentation
-- **README.md**: Project overview and quick start
-- **SETUP_GUIDE.md**: Detailed setup instructions
-- **CONTRIBUTING.md**: Contribution guidelines
-- **api_design.md**: Complete API documentation
-- **pmv_overview.md**: PMV concept and scope
-- **PROJECT_STATUS.md**: This file
+### ✅ Infraestructura
 
-### ✅ Testing & Validation
-- **Unit Tests**: State machine tests with pytest
-- **Manual Testing**: All endpoints verified
-- **Verification Script**: Automated setup checker
+- **Docker Compose**:
+   - PostgreSQL
+   - Backend
+   - Frontend
+- **Configuración**: `.env.example`
+- **Archivos de build**: Dockerfiles backend/frontend
 
-## What Works
+### ✅ Documentación
 
-### Authentication & Authorization ✅
-- Login with email/password
-- JWT token generation
-- Role-based access control (IMPULSADOR vs ANALISTA)
-- Protected routes in frontend
+- README.md
+- docs/SETUP_GUIDE.md
+- docs/CONTRIBUTING.md
+- docs/api_design.md
+- docs/pmv_overview.md
+- docs/PROJECT_STATUS.md
+- docs/SECURITY.md
 
-### Session Management ✅
-- Create new training sessions
-- Store participant data (name, age, email)
-- Associate training text with sessions
-- Generate unique session codes
-- State machine validation
-- View session details
+### ✅ Pruebas y validación
 
-### State Machine ✅
-States: `created → ready_to_start → running → audio_uploaded → survey_pending → completed`
+- Pruebas unitarias de la máquina de estados (pytest)
+- Verificación manual de endpoints
 
-All transitions validated:
-- Valid transitions allowed
-- Invalid transitions blocked with clear error messages
-- State persistence in database
+## Qué funciona
 
-### Recording Management ✅
-- Mock recording upload
-- Store audio metadata
-- Automatic state transition to `audio_uploaded`
-- File upload endpoint (placeholder)
+### Autenticación y autorización ✅
 
-### Survey System ✅
-- Collect participant feedback
-- Store responses as JSON
-- Multiple question types (dropdowns, text)
-- Automatic state transition to `completed`
+- Inicio de sesión con email/contraseña
+- JWT
+- Control por rol (IMPULSADOR vs ANALISTA)
+- Rutas protegidas en frontend
 
-### Data Export ✅
-- ANALISTA can view all sessions
-- Dataset includes all session data, recordings, and surveys
-- CSV export functionality
-- Statistics dashboard
+### Manejo de sesiones ✅
 
-### User Roles ✅
-**IMPULSADOR** (Facilitator):
-- Create training sessions
-- Manage session workflow
-- Upload recordings (mock)
-- Submit surveys
+- Crear sesiones
+- Guardar datos del participante
+- Asociar texto
+- Generar `session_code`
+- Ver detalles de sesión
+- Actualizar estado (validado por la máquina de estados)
 
-**ANALISTA** (Analyst):
-- View all sessions
-- Access complete dataset
-- Export data to CSV
-- View statistics
+### Textos de entrenamiento ✅
 
-## What's NOT Included (By Design)
+- Listado con filtros por tags (case-insensitive)
+- Catálogo de tags para UI
+- Normalización de páginas para RV desde la página 3
 
-The following were explicitly excluded from the PMV scope:
+### Máquina de estados ✅
 
-❌ Payment or subscription systems  
-❌ Multi-tenancy features  
-❌ Complex dashboards or analytics  
-❌ AI/ML integration  
-❌ Actual VR application (placeholder only)  
-❌ Production-grade audio storage  
-❌ Real-time notifications  
-❌ Email system  
-❌ Advanced user management  
+Estados: `created → ready_to_start → running → audio_uploaded → survey_pending → completed`
 
-## Known Limitations
+- Transiciones válidas permitidas
+- Transiciones inválidas bloqueadas con mensajes claros
+- Persistencia en BD
 
-### Audio Storage
-- Current implementation uses mock/placeholder audio upload
-- For production, implement cloud storage (AWS S3, Google Cloud Storage, etc.)
+### Grabaciones (audio) ✅
 
-### Database
-- Development uses SQLite for testing
-- Production should use PostgreSQL (configured in Docker Compose)
+- Subida de audio real por Unity a través del backend (multipart)
+- Almacenamiento privado en Cloudflare R2 (S3 compatible)
+- Descarga mediante URL presignada temporal (solo ANALISTA)
+- Existe un endpoint “mock” para pruebas web, pero Unity debe usar `/upload`
 
-### Security
-- Default SECRET_KEY should be changed in production
-- HTTPS should be enabled for production deployment
-- Rate limiting not implemented
+### Encuestas ✅
 
-### Scalability
-- Single server architecture
-- No caching layer
-- No load balancing
+- Recolección de retroalimentación
+- Respuestas en JSON
+- Transición a `completed` al enviar encuesta (cuando corresponde)
 
-## Test Accounts
+### Dataset y exportación ✅
 
-Two test accounts are pre-configured:
+- ANALISTA ve dataset completo
+- Exportación a CSV
+- Dataset incluye recordings con `id` y metadata
+- Descarga de audio por URL presignada (preview/descarga en UI)
 
-**IMPULSADOR Account:**
-- Email: `impulsador@toastclub.com`
-- Password: `impulsador123`
+## Qué NO incluye (por diseño)
 
-**ANALISTA Account:**
-- Email: `analista@toastclub.com`
-- Password: `analista123`
+- Pagos/suscripciones
+- Multi-tenancy
+- Analítica avanzada
+- IA/ML
+- Notificaciones en tiempo real
+- Sistema de emails
+- Gestión avanzada de usuarios
 
-## Quick Start
+## Limitaciones conocidas
+
+### Audio
+
+- El almacenamiento está implementado (Cloudflare R2), pero no hay procesamiento/análisis del audio.
+
+### Seguridad
+
+- `SECRET_KEY` debe cambiarse en producción
+- HTTPS debe habilitarse en despliegues reales
+- No hay limitación de solicitudes implementada
+
+### Escalabilidad
+
+- Arquitectura simple (sin cache / sin balanceo)
+
+## Cuentas de prueba
+
+- **IMPULSADOR**: `impulsador@toastclub.com` / `impulsador123`
+- **ANALISTA**: `analista@toastclub.com` / `analista123`
+
+## Inicio rápido
 
 ```bash
-# Clone the repository
 git clone https://github.com/panconlocro/Toast-Club-PMV.git
 cd Toast-Club-PMV
-
-# Verify setup
-bash scripts/verify_setup.sh
-
-# Start with Docker
 docker-compose up --build
-
-# Access the application
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8000/docs
 ```
 
-## Development Status
+- Frontend: http://localhost:3000
+- Swagger (documentación del API): http://localhost:8000/docs
 
-| Component | Status | Notes |
+## Estado de componentes
+
+| Componente | Estado | Notas |
 |-----------|--------|-------|
-| Backend API | ✅ Complete | All endpoints functional |
-| Frontend UI | ✅ Complete | All pages implemented |
-| Database Models | ✅ Complete | All entities defined |
-| State Machine | ✅ Complete | Fully validated |
-| Authentication | ✅ Complete | JWT tokens working |
-| Documentation | ✅ Complete | Comprehensive docs |
-| Docker Setup | ✅ Complete | Multi-container ready |
-| Tests | ✅ Complete | Core tests passing |
+| Backend API | ✅ Completo | Endpoints funcionales |
+| Frontend UI | ✅ Completo | Páginas clave |
+| Modelos DB | ✅ Completo | Entidades definidas |
+| Máquina de estados | ✅ Completo | Validada |
+| Autenticación | ✅ Completo | JWT |
+| Docs | ✅ Completo | Documentación en `/docs` |
+| Docker | ✅ Completo | Stack listo |
+| Pruebas | ✅ Completo | Pruebas base |
 
-## File Statistics
+## Conclusión
 
-- **Total Files**: 48 source files
-- **Backend Files**: 26 Python files
-- **Frontend Files**: 10 JSX/JS files
-- **Documentation**: 6 markdown files
-- **Configuration**: 6 config files
+Este PMV demuestra el concepto base de una plataforma de entrenamiento en RV:
 
-## Code Metrics
+- ✅ API completa
+- ✅ UI funcional
+- ✅ Recolección de datos (sesión + audio + encuesta)
+- ✅ Control por roles
+- ✅ Exportación de dataset
 
-- **Backend**: ~2,500 lines of Python
-- **Frontend**: ~1,800 lines of JavaScript/JSX
-- **Tests**: 3 test cases (state machine)
-- **Documentation**: ~6,000 words
-
-## Next Steps for Production
-
-1. **Security Hardening**
-   - Change SECRET_KEY
-   - Enable HTTPS
-   - Implement rate limiting
-   - Add input sanitization
-
-2. **Audio Storage**
-   - Integrate cloud storage
-   - Implement actual file uploads
-   - Add audio processing
-
-3. **Monitoring**
-   - Add logging
-   - Set up error tracking
-   - Implement health checks
-
-4. **Testing**
-   - Add integration tests
-   - Add E2E tests
-   - Increase test coverage
-
-5. **Features**
-   - Email notifications
-   - Advanced analytics
-   - User profile management
-   - Session history
-
-6. **VR Integration**
-   - Develop actual VR application
-   - Integrate with backend API
-   - Test VR workflows
-
-## Support & Resources
-
-- **Repository**: https://github.com/panconlocro/Toast-Club-PMV
-- **Documentation**: See `/docs` directory
-- **API Docs**: http://localhost:8000/docs (when running)
-- **Issues**: Create issues on GitHub
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Conclusion
-
-This PMV successfully demonstrates the core concept of a VR communication training platform. It provides:
-- ✅ Complete backend API
-- ✅ Functional frontend UI
-- ✅ Data collection capability
-- ✅ Role-based access
-- ✅ Session workflow management
-- ✅ Export functionality
-
-The project is ready to:
-1. Collect real user feedback
-2. Validate the training concept
-3. Guide VR application development
-4. Gather dataset for analysis
-
-**Status: Ready for Deployment** 🚀
+**Estado: listo para validación y evolución del producto**

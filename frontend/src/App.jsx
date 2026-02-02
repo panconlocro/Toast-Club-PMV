@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import ImpulsorPage from './pages/ImpulsorPage'
 import AnalistaPage from './pages/AnalistaPage'
+import { UI_COPY } from './uiCopy'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -31,11 +32,8 @@ function App() {
     <div className="app">
       {isAuthenticated && (
         <nav className="nav">
-          <Link to={userRole === 'IMPULSADOR' ? '/impulsador' : '/analista'}>
-            Home
-          </Link>
-          <button onClick={handleLogout} className="btn btn-secondary" style={{float: 'right'}}>
-            Logout
+          <button onClick={handleLogout} className="btn btn-secondary nav__logout">
+            {UI_COPY.nav.logout}
           </button>
         </nav>
       )}

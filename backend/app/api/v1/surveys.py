@@ -6,6 +6,7 @@ from ...db.session import get_db
 from ...models.survey import Survey
 from ...models.session import Session as SessionModel
 from ...core.state_machine import SessionState
+from ...core.time import to_local_iso
 
 router = APIRouter()
 
@@ -61,7 +62,7 @@ def create_survey(
         id=survey.id,
         session_id=survey.session_id,
         respuestas_json=survey.respuestas_json,
-        created_at=survey.created_at.isoformat() if survey.created_at else ""
+        created_at=to_local_iso(survey.created_at) or ""
     )
 
 
@@ -83,7 +84,7 @@ def get_session_surveys(session_id: int, db: Session = Depends(get_db)):
             id=survey.id,
             session_id=survey.session_id,
             respuestas_json=survey.respuestas_json,
-            created_at=survey.created_at.isoformat() if survey.created_at else ""
+            created_at=to_local_iso(survey.created_at) or ""
         )
         for survey in surveys
     ]

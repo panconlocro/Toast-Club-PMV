@@ -1,6 +1,13 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authAPI } from '../api/sessions'
+import { UI_COPY } from '../uiCopy'
+import Layout from '../components/Layout'
+import Card from '../components/ui/Card'
+import Input from '../components/ui/Input'
+import Button from '../components/ui/Button'
+import InlineMessage from '../components/ui/InlineMessage'
+import { mapApiError } from '../api/errors'
 
 function LoginPage({ setIsAuthenticated, setUserRole }) {
   const [email, setEmail] = useState('')
@@ -31,61 +38,50 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
         navigate('/analista')
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please try again.')
+      setError(mapApiError(err, UI_COPY.login.error))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: '400px', margin: '100px auto' }}>
-        <h1>Toast Club PMV</h1>
-        <h2>Login</h2>
+    <Layout title={UI_COPY.login.title} subtitle={UI_COPY.login.subtitle}>
+      <Card className="login-card" title="Acceso">
         
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="impulsador@toastclub.com"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="ui-form">
+          <Input
+            id="email"
+            label={UI_COPY.login.emailLabel}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="impulsador@toastclub.com"
+          />
           
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <Input
+            id="password"
+            label={UI_COPY.login.passwordLabel}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           
-          {error && <div className="error">{error}</div>}
+          {error && <InlineMessage variant="error">{error}</InlineMessage>}
           
-          <button 
-            type="submit" 
-            className="btn btn-primary" 
-            disabled={loading}
-            style={{ width: '100%' }}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
+          <Button type="submit" variant="primary" disabled={loading} style={{ width: '100%' }}>
+            {loading ? UI_COPY.login.submitting : UI_COPY.login.submit}
+          </Button>
         </form>
         
         <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
-          <p><strong>Test Accounts:</strong></p>
-          <p>Impulsador: impulsador@toastclub.com / impulsador123</p>
-          <p>Analista: analista@toastclub.com / analista123</p>
+          <p><strong>{UI_COPY.login.testAccountsTitle}:</strong></p>
+          <p>{UI_COPY.login.impulsorAccount}</p>
+          <p>{UI_COPY.login.analistaAccount}</p>
         </div>
-      </div>
-    </div>
+      </Card>
+    </Layout>
   )
 }
 
