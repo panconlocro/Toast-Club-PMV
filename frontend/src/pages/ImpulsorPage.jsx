@@ -44,6 +44,12 @@ function ImpulsorPage() {
     setMessage(UI_COPY.impulsor.successCreated)
   }
 
+  useEffect(() => {
+    if (message === UI_COPY.impulsor.successCreated && currentSession?.estado !== 'created') {
+      setMessage('')
+    }
+  }, [currentSession?.estado, message])
+
   const handleCopySessionCode = async () => {
     const code = currentSession?.session_code
     if (!code) return
