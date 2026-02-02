@@ -13,13 +13,27 @@ function ImpulsorPage() {
   const [currentSession, setCurrentSession] = useState(null)
   const [message, setMessage] = useState('')
   const [lastCheck, setLastCheck] = useState(null)
-  const pollingIntervalRef = useRef(null)
+  const pollingTimeoutRef = useRef(null)
+  const pollingFailuresRef = useRef(0)
+  const isMountedRef = useRef(false)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current)
+        pollingTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   const handleCreateNewSession = () => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current)
-      pollingIntervalRef.current = null
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
     }
+    pollingFailuresRef.current = 0
     setCurrentSession(null)
     setLastCheck(null)
     setMessage('')
@@ -85,31 +99,47 @@ function ImpulsorPage() {
 
     // Stop polling when we don't have a session or it stopped running.
     if (!sessionId || !isRunning) {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current)
+        pollingTimeoutRef.current = null
       }
+      pollingFailuresRef.current = 0
       return
     }
 
-    // Avoid duplicate intervals.
-    if (!pollingIntervalRef.current) {
-      pollingIntervalRef.current = setInterval(async () => {
-        try {
-          const latest = await sessionsAPI.getSession(sessionId)
-          setCurrentSession(() => latest)
-          setLastCheck(new Date())
-        } catch (error) {
-          console.warn('Polling failed:', error?.message || error)
-        }
-      }, 2500)
+    let cancelled = false
+
+    const pollOnce = async () => {
+      try {
+        const latest = await sessionsAPI.getSession(sessionId)
+        if (!isMountedRef.current || cancelled) return
+        pollingFailuresRef.current = 0
+        setCurrentSession(() => latest)
+        setLastCheck(new Date())
+      } catch (error) {
+        pollingFailuresRef.current += 1
+        console.warn('Polling failed:', error?.message || error)
+      }
+
+      if (!isMountedRef.current || cancelled) return
+
+      const baseDelay = 2500
+      const backoffDelay = Math.min(10000, baseDelay + pollingFailuresRef.current * 1500)
+      pollingTimeoutRef.current = setTimeout(pollOnce, backoffDelay)
     }
 
-    // Cleanup on unmount.
+    // Kick off the polling loop (avoid duplicate timers).
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
+    }
+    pollOnce()
+
     return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
+      cancelled = true
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current)
+        pollingTimeoutRef.current = null
       }
     }
   }, [currentSession?.id, currentSession?.estado])
