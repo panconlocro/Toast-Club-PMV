@@ -297,6 +297,27 @@ h3 {
   gap: 16px;
 }
 
+.status-card {
+  padding: 16px 18px;
+  gap: 12px;
+  max-width: 520px;
+  align-self: start;
+  background: #fcfbfa;
+}
+
+.status-card .ui-card__title {
+  font-size: 16px;
+}
+
+.status-card .ui-card__content {
+  gap: 10px;
+}
+
+.status-card .ui-alert {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
 .ui-form {
   display: grid;
   gap: 16px;
@@ -489,6 +510,31 @@ h3 {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.status-banner {
+  align-self: flex-start;
+  font-size: 13px;
+  padding: 8px 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-banner__subtext {
+  color: #2f3b57;
+  font-weight: 500;
+}
+
+.status-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.status-inline__meta {
+  color: var(--text-muted);
 }
 
 .ui-alert--info {
