@@ -50,6 +50,13 @@ function ImpulsorPage() {
     }
   }, [currentSession?.estado, message])
 
+  const hasSession = Boolean(currentSession)
+  const isCreated = currentSession?.estado === 'created'
+  const isRunning = currentSession?.estado === 'running'
+  const isAudioUploaded = currentSession?.estado === 'audio_uploaded'
+  const isSurveyPending = currentSession?.estado === 'survey_pending'
+  const isCompleted = currentSession?.estado === 'completed'
+
   const handleCopySessionCode = async () => {
     const code = currentSession?.session_code
     if (!code) return
@@ -153,91 +160,93 @@ function ImpulsorPage() {
   return (
     <Layout title={UI_COPY.impulsor.title} subtitle={UI_COPY.impulsor.subtitle}>
 
-      {message && (
-        <Card>
-          <InlineMessage variant="success">{message}</InlineMessage>
+      {!hasSession && (
+        <Card title="Crear sesión">
+          <SessionForm onSessionCreated={handleSessionCreated} />
         </Card>
       )}
 
-      {!currentSession && (
-        <SessionForm onSessionCreated={handleSessionCreated} />
-      )}
-
-      {currentSession && currentSession.estado !== 'survey_pending' && currentSession.estado !== 'completed' && (
-        <Card title={UI_COPY.impulsor.currentSessionTitle}>
+      {hasSession && (
+        <Card title="Código de sesión">
+          {message && <InlineMessage variant="success">{message}</InlineMessage>}
           <p>
-            <strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}{' '}
-            {currentSession.estado !== 'running' && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleCopySessionCode}
-                style={{ marginLeft: '8px' }}
-              >
-                {UI_COPY.impulsor.copy}
-              </Button>
-            )}
+            <strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleCopySessionCode}
+              style={{ marginLeft: '8px' }}
+            >
+              {UI_COPY.impulsor.copy}
+            </Button>
           </p>
           <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante.nombre}</p>
-          <p><strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}</p>
-          <p><strong>{UI_COPY.impulsor.trainingText}:</strong></p>
-          <p style={{backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px'}}>
-            {currentSession.texto_seleccionado?.Title || UI_COPY.impulsor.noTextSelected}
-          </p>
-
-          <div style={{marginTop: '20px'}}>
-            {currentSession.estado === 'created' && (
-              <Button onClick={handleStartSession} variant="primary">
-                {UI_COPY.impulsor.startButton}
-              </Button>
-            )}
-            
-            {currentSession.estado === 'running' && (
-              <>
-                <p><strong>{UI_COPY.impulsor.waitingAudioTitle}</strong></p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '12px 0' }}>
-                  <Spinner label={UI_COPY.common.loading} />
-                  <p style={{ margin: 0 }}>
-                    {UI_COPY.impulsor.waitingAudioBody}
-                  </p>
-                </div>
-                {lastCheck && (
-                  <p style={{ marginTop: '8px' }}>
-                    <strong>{UI_COPY.impulsor.lastCheck}:</strong> {lastCheck.toLocaleTimeString()}
-                  </p>
-                )}
-              </>
-            )}
-            
-            {currentSession.estado === 'audio_uploaded' && (
-              <>
-                <p><strong>{UI_COPY.impulsor.audioReceived}</strong></p>
-                <Button onClick={handleContinueToSurvey} variant="primary">
-                  {UI_COPY.impulsor.continueToSurvey}
-                </Button>
-              </>
-            )}
-          </div>
+          <p><strong>{UI_COPY.impulsor.trainingText}:</strong> {currentSession.texto_seleccionado?.Title || UI_COPY.impulsor.noTextSelected}</p>
+          {isCreated && (
+            <Button onClick={handleStartSession} variant="primary">
+              {UI_COPY.impulsor.startButton}
+            </Button>
+          )}
         </Card>
       )}
 
-      {currentSession?.estado === 'survey_pending' && (
-        <SurveyForm 
-          sessionId={currentSession.id}
-          onSurveySubmitted={handleSurveySubmitted}
-        />
+      {hasSession && !isCompleted && (
+        <Card title="Estado actual">
+          <InlineMessage variant="info">
+            <strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}
+          </InlineMessage>
+
+          {isRunning && (
+            <div style={{ display: 'grid', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Spinner label={UI_COPY.common.loading} />
+                <span>{UI_COPY.impulsor.waitingAudioBody}</span>
+              </div>
+              {lastCheck && (
+                <span style={{ fontSize: '0.85rem', color: '#5f6b7a' }}>
+                  {UI_COPY.impulsor.lastCheck}: {lastCheck.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+          )}
+
+          {isAudioUploaded && (
+            <InlineMessage variant="success">
+              {UI_COPY.impulsor.audioReceived}
+            </InlineMessage>
+          )}
+
+          {isAudioUploaded && (
+            <Button onClick={handleContinueToSurvey} variant="primary">
+              {UI_COPY.impulsor.continueToSurvey}
+            </Button>
+          )}
+        </Card>
       )}
 
-      {currentSession?.estado === 'completed' && (
+      {(isAudioUploaded || isSurveyPending) && (
+        <Card title="Encuesta">
+          {isSurveyPending ? (
+            <SurveyForm
+              sessionId={currentSession.id}
+              onSurveySubmitted={handleSurveySubmitted}
+            />
+          ) : (
+            <InlineMessage variant="info">
+              {UI_COPY.impulsor.continueToSurvey}
+            </InlineMessage>
+          )}
+        </Card>
+      )}
+
+      {isCompleted && (
         <Card title={UI_COPY.impulsor.completedTitle}>
           <p><strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}</p>
           <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante?.nombre}</p>
-          <div style={{ marginTop: '16px' }}>
-            <Button onClick={handleCreateNewSession} variant="primary">
-              {UI_COPY.impulsor.newSession}
-            </Button>
-          </div>
+          <Button onClick={handleCreateNewSession} variant="primary">
+            {UI_COPY.impulsor.newSession}
+          </Button>
         </Card>
       )}
     </Layout>
