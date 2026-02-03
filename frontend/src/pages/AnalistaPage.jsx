@@ -42,7 +42,7 @@ function AnalistaPage() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = 'toastclub_dataset.csv'
+      link.download = 'dataset_export.zip'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)

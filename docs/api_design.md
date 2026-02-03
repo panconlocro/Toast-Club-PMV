@@ -420,7 +420,21 @@ Notas:
 
 ### GET `/dataset/export`
 
-Exporta un CSV.
+Exporta un ZIP con metadata, encuestas y audios reales desde R2.
+
+Formato del archivo:
+
+- `dataset_export_YYYYMMDD_HHMM.zip`
+  - `dataset.csv`
+  - `surveys.csv`
+  - `audios/{session_code}__{recording_id}.{ext}`
+
+Notas:
+
+- Requiere rol `ANALISTA`.
+- `recordings.audio_url` almacena la **storage key** en R2 (no URL pública).
+- `dataset.csv` incluye una fila por grabación (o una fila por sesión si no hay grabaciones).
+- `surveys.csv` se exporta en formato ancho si las keys son fijas, o en formato largo si son dinámicas.
 
 ---
 
