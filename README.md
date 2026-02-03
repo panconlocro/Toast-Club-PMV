@@ -135,7 +135,7 @@ Toast-Club-PMV/
 
 ### Dataset (Solo ANALISTA)
 - `GET /api/v1/dataset` - Obtener dataset completo
-- `GET /api/v1/dataset/export` - Exportar CSV
+- `GET /api/v1/dataset/export` - Exportar ZIP (dataset.csv, surveys.csv, audios/)
 
 Para más detalles, consulta la [documentación de la API](docs/api_design.md).
 

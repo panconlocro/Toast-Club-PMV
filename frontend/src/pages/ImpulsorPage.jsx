@@ -161,6 +161,15 @@ function ImpulsorPage() {
   return (
     <Layout title={UI_COPY.impulsor.title} subtitle={UI_COPY.impulsor.subtitle}>
 
+      {hasSession && !isCompleted && (
+        <InlineMessage variant="info" className="status-banner">
+          <strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}
+          {isRunning && (
+            <span className="status-banner__subtext">{UI_COPY.impulsor.waitingAudioBody}</span>
+          )}
+        </InlineMessage>
+      )}
+
       {!hasSession && (
         <Card title="Crear sesión">
           <SessionForm onSessionCreated={handleSessionCreated} />
@@ -177,6 +186,7 @@ function ImpulsorPage() {
               variant="secondary"
               size="sm"
               onClick={handleCopySessionCode}
+              aria-label={`${UI_COPY.impulsor.copy}: ${currentSession.session_code}`}
               style={{ marginLeft: '8px' }}
             >
               {UI_COPY.impulsor.copy}
@@ -192,52 +202,32 @@ function ImpulsorPage() {
         </Card>
       )}
 
-      {hasSession && !isCompleted && (
-        <Card title="Estado actual">
-          <InlineMessage variant="info">
-            <strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}
-          </InlineMessage>
-
-          {isRunning && (
-            <div style={{ display: 'grid', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Spinner label={UI_COPY.common.loading} />
-                <span>{UI_COPY.impulsor.waitingAudioBody}</span>
-              </div>
-              {lastCheck && (
-                <span style={{ fontSize: '0.85rem', color: '#5f6b7a' }}>
-                  {UI_COPY.impulsor.lastCheck}: {lastCheck.toLocaleTimeString()}
-                </span>
-              )}
-            </div>
+      {hasSession && !isCompleted && isRunning && (
+        <div className="status-inline">
+          <Spinner label={UI_COPY.common.loading} />
+          {lastCheck && (
+            <span className="status-inline__meta">
+              {UI_COPY.impulsor.lastCheck}: {lastCheck.toLocaleTimeString()}
+            </span>
           )}
-
-          {isAudioUploaded && (
-            <InlineMessage variant="success">
-              {UI_COPY.impulsor.audioReceived}
-            </InlineMessage>
-          )}
-
-          {isAudioUploaded && (
-            <Button onClick={handleContinueToSurvey} variant="primary">
-              {UI_COPY.impulsor.continueToSurvey}
-            </Button>
-          )}
-        </Card>
+        </div>
       )}
 
-      {(isAudioUploaded || isSurveyPending) && (
+      {hasSession && !isCompleted && isAudioUploaded && (
+        <InlineMessage variant="success" className="status-banner">
+          {UI_COPY.impulsor.audioReceived}
+          <Button onClick={handleContinueToSurvey} variant="primary" size="sm">
+            {UI_COPY.impulsor.continueToSurvey}
+          </Button>
+        </InlineMessage>
+      )}
+
+      {isSurveyPending && (
         <Card title="Encuesta">
-          {isSurveyPending ? (
-            <SurveyForm
-              sessionId={currentSession.id}
-              onSurveySubmitted={handleSurveySubmitted}
-            />
-          ) : (
-            <InlineMessage variant="info">
-              {UI_COPY.impulsor.continueToSurvey}
-            </InlineMessage>
-          )}
+          <SurveyForm
+            sessionId={currentSession.id}
+            onSurveySubmitted={handleSurveySubmitted}
+          />
         </Card>
       )}
 
