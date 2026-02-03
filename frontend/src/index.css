@@ -512,6 +512,35 @@ h3 {
   gap: 8px;
 }
 
+.session-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+}
+
+.recover-preview {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(35, 43, 54, 0.08);
+  background: #faf8f6;
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.recover-preview__details {
+  display: grid;
+  gap: 4px;
+  color: #303b46;
+}
+
+.recover-preview__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .status-banner {
   align-self: flex-start;
   font-size: 13px;

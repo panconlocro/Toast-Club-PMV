@@ -6,14 +6,21 @@ import { UI_COPY } from '../uiCopy'
 import Layout from '../components/Layout'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import Input from '../components/ui/Input'
 import InlineMessage from '../components/ui/InlineMessage'
 import Spinner from '../components/ui/Spinner'
 import { mapApiError } from '../api/errors'
 
 function ImpulsorPage() {
+  const STORAGE_KEY = 'impulsor_active_session'
   const [currentSession, setCurrentSession] = useState(null)
   const [message, setMessage] = useState('')
   const [lastCheck, setLastCheck] = useState(null)
+  const [rehydrating, setRehydrating] = useState(true)
+  const [recoverCode, setRecoverCode] = useState('')
+  const [recoverError, setRecoverError] = useState('')
+  const [recoverLoading, setRecoverLoading] = useState(false)
+  const [recoveredSession, setRecoveredSession] = useState(null)
   const pollingTimeoutRef = useRef(null)
   const pollingFailuresRef = useRef(0)
   const isMountedRef = useRef(false)
@@ -29,15 +36,80 @@ function ImpulsorPage() {
     }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+
+    const rehydrateSession = async () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (!raw) {
+          return
+        }
+        const saved = JSON.parse(raw)
+        if (!saved?.session_id) {
+          localStorage.removeItem(STORAGE_KEY)
+          return
+        }
+        const session = await sessionsAPI.getSession(saved.session_id)
+        if (!cancelled) {
+          setCurrentSession(session)
+        }
+      } catch (error) {
+        console.warn('Failed to rehydrate session:', error)
+        localStorage.removeItem(STORAGE_KEY)
+      } finally {
+        if (!cancelled) {
+          setRehydrating(false)
+        }
+      }
+    }
+
+    rehydrateSession()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (rehydrating && !currentSession) {
+      return
+    }
+    if (currentSession) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          session_id: currentSession.id,
+          session_code: currentSession.session_code
+        })
+      )
+    } else {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [currentSession, rehydrating])
+
+  useEffect(() => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
+    }
+    pollingFailuresRef.current = 0
+    setLastCheck(null)
+  }, [currentSession?.id])
+
   const handleCreateNewSession = () => {
     if (pollingTimeoutRef.current) {
       clearTimeout(pollingTimeoutRef.current)
       pollingTimeoutRef.current = null
     }
     pollingFailuresRef.current = 0
+    localStorage.removeItem(STORAGE_KEY)
     setCurrentSession(null)
     setLastCheck(null)
     setMessage('')
+    setRecoveredSession(null)
+    setRecoverError('')
+    setRecoverCode('')
   }
 
   const handleSessionCreated = (session) => {
@@ -77,6 +149,49 @@ function ImpulsorPage() {
     } catch {
       setMessage(UI_COPY.impulsor.codeCopyError)
     }
+  }
+
+  const handleRecoverSession = async (event) => {
+    event.preventDefault()
+    if (recoverLoading) return
+    const normalized = recoverCode.trim()
+    if (!normalized) {
+      setRecoverError('Ingresa un código válido.')
+      return
+    }
+
+    setRecoverLoading(true)
+    setRecoverError('')
+
+    try {
+      const session = await sessionsAPI.getSessionByCode(normalized)
+      setRecoveredSession(session)
+    } catch (error) {
+      setRecoverError(mapApiError(error, 'No se encontró una sesión con ese código.'))
+    } finally {
+      setRecoverLoading(false)
+    }
+  }
+
+  const handleUseRecoveredSession = () => {
+    if (!recoveredSession) return
+    setCurrentSession(recoveredSession)
+    setRecoveredSession(null)
+    setRecoverError('')
+    setRecoverCode('')
+    setMessage('')
+  }
+
+  const handleCancelRecoveredSession = () => {
+    setRecoveredSession(null)
+    setRecoverError('')
+  }
+
+  const getSessionTimestamp = (session) => {
+    const candidate = session?.updated_at || session?.created_at
+    if (!candidate) return null
+    const parsed = Date.parse(candidate)
+    return Number.isNaN(parsed) ? null : parsed
   }
 
   const handleStartSession = async () => {
@@ -161,7 +276,15 @@ function ImpulsorPage() {
   return (
     <Layout title={UI_COPY.impulsor.title} subtitle={UI_COPY.impulsor.subtitle}>
 
-      {hasSession && !isCompleted && (
+      {hasSession && (
+        <div className="session-toolbar">
+          <Button type="button" variant="ghost" size="sm" onClick={handleCreateNewSession}>
+            Salir de esta sesión
+          </Button>
+        </div>
+      )}
+
+      {hasSession && !isCompleted && !isAudioUploaded && (
         <InlineMessage variant="info" className="status-banner">
           <strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}
           {isRunning && (
@@ -170,10 +293,68 @@ function ImpulsorPage() {
         </InlineMessage>
       )}
 
-      {!hasSession && (
-        <Card title="Crear sesión">
-          <SessionForm onSessionCreated={handleSessionCreated} />
-        </Card>
+      {!rehydrating && !hasSession && (
+        <>
+          <Card title="Crear sesión">
+            <SessionForm onSessionCreated={handleSessionCreated} />
+          </Card>
+          <Card title="Recuperar sesión por código">
+            <form onSubmit={handleRecoverSession} className="ui-form">
+              <Input
+                id="recover_session_code"
+                label="Código de sesión"
+                value={recoverCode}
+                onChange={(event) => setRecoverCode(event.target.value)}
+                placeholder="Ej: ABC123"
+                autoComplete="off"
+                disabled={recoverLoading}
+              />
+              {recoverError && <InlineMessage variant="error">{recoverError}</InlineMessage>}
+              <Button type="submit" variant="secondary" disabled={recoverLoading}>
+                {recoverLoading ? UI_COPY.common.loading : 'Recuperar sesión'}
+              </Button>
+            </form>
+            {recoveredSession && (
+              <div className="recover-preview">
+                <strong>Vista previa</strong>
+                {recoveredSession.estado === 'completed' && (
+                  <InlineMessage variant="info">
+                    Sesión completada. Puedes usarla solo para revisar, o salir y crear una nueva.
+                  </InlineMessage>
+                )}
+                {(() => {
+                  const timestamp = getSessionTimestamp(recoveredSession)
+                  if (!timestamp) return null
+                  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
+                  if (Date.now() - timestamp <= sevenDaysMs) return null
+                  return (
+                    <InlineMessage variant="info">
+                      Esta sesión es antigua. Verifica si corresponde continuarla.
+                    </InlineMessage>
+                  )
+                })()}
+                <div className="recover-preview__details">
+                  <div><strong>{UI_COPY.impulsor.sessionCode}:</strong> {recoveredSession.session_code}</div>
+                  <div><strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[recoveredSession.estado] || recoveredSession.estado}</div>
+                  {recoveredSession.updated_at && (
+                    <div><strong>Actualizada:</strong> {recoveredSession.updated_at}</div>
+                  )}
+                  {!recoveredSession.updated_at && recoveredSession.created_at && (
+                    <div><strong>Creada:</strong> {recoveredSession.created_at}</div>
+                  )}
+                </div>
+                <div className="recover-preview__actions">
+                  <Button type="button" variant="primary" onClick={handleUseRecoveredSession}>
+                    Usar esta sesión
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={handleCancelRecoveredSession}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        </>
       )}
 
       {hasSession && (
