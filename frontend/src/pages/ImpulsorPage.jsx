@@ -87,6 +87,15 @@ function ImpulsorPage() {
     }
   }, [currentSession, rehydrating])
 
+  useEffect(() => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
+    }
+    pollingFailuresRef.current = 0
+    setLastCheck(null)
+  }, [currentSession?.id])
+
   const handleCreateNewSession = () => {
     if (pollingTimeoutRef.current) {
       clearTimeout(pollingTimeoutRef.current)
@@ -244,7 +253,15 @@ function ImpulsorPage() {
   return (
     <Layout title={UI_COPY.impulsor.title} subtitle={UI_COPY.impulsor.subtitle}>
 
-      {hasSession && !isCompleted && (
+      {hasSession && (
+        <div className="session-toolbar">
+          <Button type="button" variant="ghost" size="sm" onClick={handleCreateNewSession}>
+            Salir de esta sesión
+          </Button>
+        </div>
+      )}
+
+      {hasSession && !isCompleted && !isAudioUploaded && (
         <InlineMessage variant="info" className="status-banner">
           <strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}
           {isRunning && (
@@ -267,6 +284,7 @@ function ImpulsorPage() {
                 onChange={(event) => setRecoverCode(event.target.value)}
                 placeholder="Ej: ABC123"
                 autoComplete="off"
+                disabled={recoverLoading}
               />
               {recoverError && <InlineMessage variant="error">{recoverError}</InlineMessage>}
               <Button type="submit" variant="secondary" disabled={recoverLoading}>
