@@ -51,6 +51,12 @@ export const sessionsAPI = {
     const response = await apiClient.get(`${API_V1}/sessions/${sessionId}`)
     return response.data
   },
+
+  /** @returns {Promise<import('./types').Session>} */
+  getSessionByCode: async (sessionCode) => {
+    const response = await apiClient.get(`${API_V1}/sessions/by-code/${sessionCode}`)
+    return response.data
+  },
   
   /** @returns {Promise<import('./types').Session>} */
   updateSessionState: async (sessionId, newState) => {

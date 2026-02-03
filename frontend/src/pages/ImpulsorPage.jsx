@@ -6,6 +6,7 @@ import { UI_COPY } from '../uiCopy'
 import Layout from '../components/Layout'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import Input from '../components/ui/Input'
 import InlineMessage from '../components/ui/InlineMessage'
 import Spinner from '../components/ui/Spinner'
 import { mapApiError } from '../api/errors'
@@ -16,6 +17,9 @@ function ImpulsorPage() {
   const [message, setMessage] = useState('')
   const [lastCheck, setLastCheck] = useState(null)
   const [rehydrating, setRehydrating] = useState(true)
+  const [recoverCode, setRecoverCode] = useState('')
+  const [recoverError, setRecoverError] = useState('')
+  const [recoverLoading, setRecoverLoading] = useState(false)
   const pollingTimeoutRef = useRef(null)
   const pollingFailuresRef = useRef(0)
   const isMountedRef = useRef(false)
@@ -134,6 +138,30 @@ function ImpulsorPage() {
     }
   }
 
+  const handleRecoverSession = async (event) => {
+    event.preventDefault()
+    if (recoverLoading) return
+    const normalized = recoverCode.trim()
+    if (!normalized) {
+      setRecoverError('Ingresa un código válido.')
+      return
+    }
+
+    setRecoverLoading(true)
+    setRecoverError('')
+
+    try {
+      const session = await sessionsAPI.getSessionByCode(normalized)
+      setCurrentSession(session)
+      setMessage('')
+      setRecoverCode('')
+    } catch (error) {
+      setRecoverError(mapApiError(error, 'No se encontró una sesión con ese código.'))
+    } finally {
+      setRecoverLoading(false)
+    }
+  }
+
   const handleStartSession = async () => {
     try {
       await sessionsAPI.updateSessionState(currentSession.id, 'ready_to_start')
@@ -226,9 +254,27 @@ function ImpulsorPage() {
       )}
 
       {!rehydrating && !hasSession && (
-        <Card title="Crear sesión">
-          <SessionForm onSessionCreated={handleSessionCreated} />
-        </Card>
+        <>
+          <Card title="Crear sesión">
+            <SessionForm onSessionCreated={handleSessionCreated} />
+          </Card>
+          <Card title="Recuperar sesión por código">
+            <form onSubmit={handleRecoverSession} className="ui-form">
+              <Input
+                id="recover_session_code"
+                label="Código de sesión"
+                value={recoverCode}
+                onChange={(event) => setRecoverCode(event.target.value)}
+                placeholder="Ej: ABC123"
+                autoComplete="off"
+              />
+              {recoverError && <InlineMessage variant="error">{recoverError}</InlineMessage>}
+              <Button type="submit" variant="secondary" disabled={recoverLoading}>
+                {recoverLoading ? UI_COPY.common.loading : 'Recuperar sesión'}
+              </Button>
+            </form>
+          </Card>
+        </>
       )}
 
       {hasSession && (
