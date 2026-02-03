@@ -11,9 +11,11 @@ import Spinner from '../components/ui/Spinner'
 import { mapApiError } from '../api/errors'
 
 function ImpulsorPage() {
+  const STORAGE_KEY = 'impulsor_active_session'
   const [currentSession, setCurrentSession] = useState(null)
   const [message, setMessage] = useState('')
   const [lastCheck, setLastCheck] = useState(null)
+  const [rehydrating, setRehydrating] = useState(true)
   const pollingTimeoutRef = useRef(null)
   const pollingFailuresRef = useRef(0)
   const isMountedRef = useRef(false)
@@ -29,12 +31,65 @@ function ImpulsorPage() {
     }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+
+    const rehydrateSession = async () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (!raw) {
+          return
+        }
+        const saved = JSON.parse(raw)
+        if (!saved?.session_id) {
+          localStorage.removeItem(STORAGE_KEY)
+          return
+        }
+        const session = await sessionsAPI.getSession(saved.session_id)
+        if (!cancelled) {
+          setCurrentSession(session)
+        }
+      } catch (error) {
+        console.warn('Failed to rehydrate session:', error)
+        localStorage.removeItem(STORAGE_KEY)
+      } finally {
+        if (!cancelled) {
+          setRehydrating(false)
+        }
+      }
+    }
+
+    rehydrateSession()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (rehydrating && !currentSession) {
+      return
+    }
+    if (currentSession) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          session_id: currentSession.id,
+          session_code: currentSession.session_code
+        })
+      )
+    } else {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [currentSession, rehydrating])
+
   const handleCreateNewSession = () => {
     if (pollingTimeoutRef.current) {
       clearTimeout(pollingTimeoutRef.current)
       pollingTimeoutRef.current = null
     }
     pollingFailuresRef.current = 0
+    localStorage.removeItem(STORAGE_KEY)
     setCurrentSession(null)
     setLastCheck(null)
     setMessage('')
@@ -170,7 +225,7 @@ function ImpulsorPage() {
         </InlineMessage>
       )}
 
-      {!hasSession && (
+      {!rehydrating && !hasSession && (
         <Card title="Crear sesión">
           <SessionForm onSessionCreated={handleSessionCreated} />
         </Card>
