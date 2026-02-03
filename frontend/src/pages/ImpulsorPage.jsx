@@ -20,6 +20,7 @@ function ImpulsorPage() {
   const [recoverCode, setRecoverCode] = useState('')
   const [recoverError, setRecoverError] = useState('')
   const [recoverLoading, setRecoverLoading] = useState(false)
+  const [recoveredSession, setRecoveredSession] = useState(null)
   const pollingTimeoutRef = useRef(null)
   const pollingFailuresRef = useRef(0)
   const isMountedRef = useRef(false)
@@ -106,6 +107,9 @@ function ImpulsorPage() {
     setCurrentSession(null)
     setLastCheck(null)
     setMessage('')
+    setRecoveredSession(null)
+    setRecoverError('')
+    setRecoverCode('')
   }
 
   const handleSessionCreated = (session) => {
@@ -161,14 +165,26 @@ function ImpulsorPage() {
 
     try {
       const session = await sessionsAPI.getSessionByCode(normalized)
-      setCurrentSession(session)
-      setMessage('')
-      setRecoverCode('')
+      setRecoveredSession(session)
     } catch (error) {
       setRecoverError(mapApiError(error, 'No se encontró una sesión con ese código.'))
     } finally {
       setRecoverLoading(false)
     }
+  }
+
+  const handleUseRecoveredSession = () => {
+    if (!recoveredSession) return
+    setCurrentSession(recoveredSession)
+    setRecoveredSession(null)
+    setRecoverError('')
+    setRecoverCode('')
+    setMessage('')
+  }
+
+  const handleCancelRecoveredSession = () => {
+    setRecoveredSession(null)
+    setRecoverError('')
   }
 
   const handleStartSession = async () => {
@@ -291,6 +307,29 @@ function ImpulsorPage() {
                 {recoverLoading ? UI_COPY.common.loading : 'Recuperar sesión'}
               </Button>
             </form>
+            {recoveredSession && (
+              <div className="recover-preview">
+                <strong>Vista previa</strong>
+                <div className="recover-preview__details">
+                  <div><strong>{UI_COPY.impulsor.sessionCode}:</strong> {recoveredSession.session_code}</div>
+                  <div><strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[recoveredSession.estado] || recoveredSession.estado}</div>
+                  {recoveredSession.updated_at && (
+                    <div><strong>Actualizada:</strong> {recoveredSession.updated_at}</div>
+                  )}
+                  {!recoveredSession.updated_at && recoveredSession.created_at && (
+                    <div><strong>Creada:</strong> {recoveredSession.created_at}</div>
+                  )}
+                </div>
+                <div className="recover-preview__actions">
+                  <Button type="button" variant="primary" onClick={handleUseRecoveredSession}>
+                    Usar esta sesión
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={handleCancelRecoveredSession}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
         </>
       )}
