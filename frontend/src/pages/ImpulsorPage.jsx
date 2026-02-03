@@ -187,6 +187,13 @@ function ImpulsorPage() {
     setRecoverError('')
   }
 
+  const getSessionTimestamp = (session) => {
+    const candidate = session?.updated_at || session?.created_at
+    if (!candidate) return null
+    const parsed = Date.parse(candidate)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
   const handleStartSession = async () => {
     try {
       await sessionsAPI.updateSessionState(currentSession.id, 'ready_to_start')
@@ -310,6 +317,22 @@ function ImpulsorPage() {
             {recoveredSession && (
               <div className="recover-preview">
                 <strong>Vista previa</strong>
+                {recoveredSession.estado === 'completed' && (
+                  <InlineMessage variant="info">
+                    Sesión completada. Puedes usarla solo para revisar, o salir y crear una nueva.
+                  </InlineMessage>
+                )}
+                {(() => {
+                  const timestamp = getSessionTimestamp(recoveredSession)
+                  if (!timestamp) return null
+                  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
+                  if (Date.now() - timestamp <= sevenDaysMs) return null
+                  return (
+                    <InlineMessage variant="info">
+                      Esta sesión es antigua. Verifica si corresponde continuarla.
+                    </InlineMessage>
+                  )
+                })()}
                 <div className="recover-preview__details">
                   <div><strong>{UI_COPY.impulsor.sessionCode}:</strong> {recoveredSession.session_code}</div>
                   <div><strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[recoveredSession.estado] || recoveredSession.estado}</div>
