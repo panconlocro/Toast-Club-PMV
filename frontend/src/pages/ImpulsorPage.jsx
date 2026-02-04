@@ -1,0 +1,428 @@
+import { useEffect, useRef, useState } from 'react'
+import SessionForm from '../components/SessionForm'
+import SurveyForm from '../components/SurveyForm'
+import { sessionsAPI } from '../api/sessions'
+import { UI_COPY } from '../uiCopy'
+import Layout from '../components/Layout'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Input from '../components/ui/Input'
+import InlineMessage from '../components/ui/InlineMessage'
+import Spinner from '../components/ui/Spinner'
+import { mapApiError } from '../api/errors'
+
+function ImpulsorPage() {
+  const STORAGE_KEY = 'impulsor_active_session'
+  const [currentSession, setCurrentSession] = useState(null)
+  const [message, setMessage] = useState('')
+  const [lastCheck, setLastCheck] = useState(null)
+  const [rehydrating, setRehydrating] = useState(true)
+  const [recoverCode, setRecoverCode] = useState('')
+  const [recoverError, setRecoverError] = useState('')
+  const [recoverLoading, setRecoverLoading] = useState(false)
+  const [recoveredSession, setRecoveredSession] = useState(null)
+  const pollingTimeoutRef = useRef(null)
+  const pollingFailuresRef = useRef(0)
+  const isMountedRef = useRef(false)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current)
+        pollingTimeoutRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const rehydrateSession = async () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (!raw) {
+          return
+        }
+        const saved = JSON.parse(raw)
+        if (!saved?.session_id) {
+          localStorage.removeItem(STORAGE_KEY)
+          return
+        }
+        const session = await sessionsAPI.getSession(saved.session_id)
+        if (!cancelled) {
+          setCurrentSession(session)
+        }
+      } catch (error) {
+        console.warn('Failed to rehydrate session:', error)
+        localStorage.removeItem(STORAGE_KEY)
+      } finally {
+        if (!cancelled) {
+          setRehydrating(false)
+        }
+      }
+    }
+
+    rehydrateSession()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (rehydrating && !currentSession) {
+      return
+    }
+    if (currentSession) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          session_id: currentSession.id,
+          session_code: currentSession.session_code
+        })
+      )
+    } else {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [currentSession, rehydrating])
+
+  useEffect(() => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
+    }
+    pollingFailuresRef.current = 0
+    setLastCheck(null)
+  }, [currentSession?.id])
+
+  const handleCreateNewSession = () => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
+    }
+    pollingFailuresRef.current = 0
+    localStorage.removeItem(STORAGE_KEY)
+    setCurrentSession(null)
+    setLastCheck(null)
+    setMessage('')
+    setRecoveredSession(null)
+    setRecoverError('')
+    setRecoverCode('')
+  }
+
+  const handleSessionCreated = (session) => {
+    setCurrentSession(session)
+    setMessage(UI_COPY.impulsor.successCreated)
+  }
+
+  useEffect(() => {
+    if (message === UI_COPY.impulsor.successCreated && currentSession?.estado !== 'created') {
+      setMessage('')
+    }
+  }, [currentSession?.estado, message])
+
+  const hasSession = Boolean(currentSession)
+  const isCreated = currentSession?.estado === 'created'
+  const isRunning = currentSession?.estado === 'running'
+  const isAudioUploaded = currentSession?.estado === 'audio_uploaded'
+  const isSurveyPending = currentSession?.estado === 'survey_pending'
+  const isCompleted = currentSession?.estado === 'completed'
+
+  const handleCopySessionCode = async () => {
+    const code = currentSession?.session_code
+    if (!code) return
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = code
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setMessage(UI_COPY.impulsor.codeCopied)
+    } catch {
+      setMessage(UI_COPY.impulsor.codeCopyError)
+    }
+  }
+
+  const handleRecoverSession = async (event) => {
+    event.preventDefault()
+    if (recoverLoading) return
+    const normalized = recoverCode.trim()
+    if (!normalized) {
+      setRecoverError('Ingresa un código válido.')
+      return
+    }
+
+    setRecoverLoading(true)
+    setRecoverError('')
+
+    try {
+      const session = await sessionsAPI.getSessionByCode(normalized)
+      setRecoveredSession(session)
+    } catch (error) {
+      setRecoverError(mapApiError(error, 'No se encontró una sesión con ese código.'))
+    } finally {
+      setRecoverLoading(false)
+    }
+  }
+
+  const handleUseRecoveredSession = () => {
+    if (!recoveredSession) return
+    setCurrentSession(recoveredSession)
+    setRecoveredSession(null)
+    setRecoverError('')
+    setRecoverCode('')
+    setMessage('')
+  }
+
+  const handleCancelRecoveredSession = () => {
+    setRecoveredSession(null)
+    setRecoverError('')
+  }
+
+  const getSessionTimestamp = (session) => {
+    const candidate = session?.updated_at || session?.created_at
+    if (!candidate) return null
+    const parsed = Date.parse(candidate)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  const handleStartSession = async () => {
+    try {
+      await sessionsAPI.updateSessionState(currentSession.id, 'ready_to_start')
+      const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'running')
+      setCurrentSession(updatedSession)
+    } catch (error) {
+      setMessage(`${UI_COPY.impulsor.startError}: ${mapApiError(error)}`)
+    }
+  }
+
+  const handleContinueToSurvey = async () => {
+    try {
+      const updatedSession = await sessionsAPI.updateSessionState(currentSession.id, 'survey_pending')
+      setCurrentSession(updatedSession)
+    } catch (error) {
+      setMessage(`${UI_COPY.impulsor.continueError}: ${mapApiError(error)}`)
+    }
+  }
+
+  const handleSurveySubmitted = () => {
+    setCurrentSession((prev) => {
+      if (!prev) return prev
+      return { ...prev, estado: 'completed' }
+    })
+    setMessage('')
+  }
+
+  // Poll backend while the session is running so the UI updates automatically.
+  useEffect(() => {
+    const sessionId = currentSession?.id
+    const isRunning = currentSession?.estado === 'running'
+
+    // Stop polling when we don't have a session or it stopped running.
+    if (!sessionId || !isRunning) {
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current)
+        pollingTimeoutRef.current = null
+      }
+      pollingFailuresRef.current = 0
+      return
+    }
+
+    let cancelled = false
+
+    const pollOnce = async () => {
+      try {
+        const latest = await sessionsAPI.getSession(sessionId)
+        if (!isMountedRef.current || cancelled) return
+        pollingFailuresRef.current = 0
+        setCurrentSession(() => latest)
+        setLastCheck(new Date())
+      } catch (error) {
+        pollingFailuresRef.current += 1
+        console.warn('Polling failed:', error?.message || error)
+      }
+
+      if (!isMountedRef.current || cancelled) return
+
+      const baseDelay = 2500
+      const backoffDelay = Math.min(10000, baseDelay + pollingFailuresRef.current * 1500)
+      pollingTimeoutRef.current = setTimeout(pollOnce, backoffDelay)
+    }
+
+    // Kick off the polling loop (avoid duplicate timers).
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
+    }
+    pollOnce()
+
+    return () => {
+      cancelled = true
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current)
+        pollingTimeoutRef.current = null
+      }
+    }
+  }, [currentSession?.id, currentSession?.estado])
+
+  return (
+    <Layout title={UI_COPY.impulsor.title} subtitle={UI_COPY.impulsor.subtitle}>
+
+      {hasSession && (
+        <div className="session-toolbar">
+          <Button type="button" variant="ghost" size="sm" onClick={handleCreateNewSession}>
+            Salir de esta sesión
+          </Button>
+        </div>
+      )}
+
+      {hasSession && !isCompleted && !isAudioUploaded && (
+        <InlineMessage variant="info" className="status-banner">
+          <strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[currentSession.estado] || currentSession.estado}
+          {isRunning && (
+            <span className="status-banner__subtext">{UI_COPY.impulsor.waitingAudioBody}</span>
+          )}
+        </InlineMessage>
+      )}
+
+      {!rehydrating && !hasSession && (
+        <>
+          <Card title="Crear sesión">
+            <SessionForm onSessionCreated={handleSessionCreated} />
+          </Card>
+          <Card title="Recuperar sesión por código">
+            <form onSubmit={handleRecoverSession} className="ui-form">
+              <Input
+                id="recover_session_code"
+                label="Código de sesión"
+                value={recoverCode}
+                onChange={(event) => setRecoverCode(event.target.value)}
+                placeholder="Ej: ABC123"
+                autoComplete="off"
+                disabled={recoverLoading}
+              />
+              {recoverError && <InlineMessage variant="error">{recoverError}</InlineMessage>}
+              <Button type="submit" variant="secondary" disabled={recoverLoading}>
+                {recoverLoading ? UI_COPY.common.loading : 'Recuperar sesión'}
+              </Button>
+            </form>
+            {recoveredSession && (
+              <div className="recover-preview">
+                <strong>Vista previa</strong>
+                {recoveredSession.estado === 'completed' && (
+                  <InlineMessage variant="info">
+                    Sesión completada. Puedes usarla solo para revisar, o salir y crear una nueva.
+                  </InlineMessage>
+                )}
+                {(() => {
+                  const timestamp = getSessionTimestamp(recoveredSession)
+                  if (!timestamp) return null
+                  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000
+                  if (Date.now() - timestamp <= sevenDaysMs) return null
+                  return (
+                    <InlineMessage variant="info">
+                      Esta sesión es antigua. Verifica si corresponde continuarla.
+                    </InlineMessage>
+                  )
+                })()}
+                <div className="recover-preview__details">
+                  <div><strong>{UI_COPY.impulsor.sessionCode}:</strong> {recoveredSession.session_code}</div>
+                  <div><strong>{UI_COPY.impulsor.state}:</strong> {UI_COPY.stateLabels[recoveredSession.estado] || recoveredSession.estado}</div>
+                  {recoveredSession.updated_at && (
+                    <div><strong>Actualizada:</strong> {recoveredSession.updated_at}</div>
+                  )}
+                  {!recoveredSession.updated_at && recoveredSession.created_at && (
+                    <div><strong>Creada:</strong> {recoveredSession.created_at}</div>
+                  )}
+                </div>
+                <div className="recover-preview__actions">
+                  <Button type="button" variant="primary" onClick={handleUseRecoveredSession}>
+                    Usar esta sesión
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={handleCancelRecoveredSession}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        </>
+      )}
+
+      {hasSession && (
+        <Card title="Código de sesión">
+          {message && <InlineMessage variant="success">{message}</InlineMessage>}
+          <p>
+            <strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleCopySessionCode}
+              aria-label={`${UI_COPY.impulsor.copy}: ${currentSession.session_code}`}
+              style={{ marginLeft: '8px' }}
+            >
+              {UI_COPY.impulsor.copy}
+            </Button>
+          </p>
+          <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante.nombre}</p>
+          <p><strong>{UI_COPY.impulsor.trainingText}:</strong> {currentSession.texto_seleccionado?.Title || UI_COPY.impulsor.noTextSelected}</p>
+          {isCreated && (
+            <Button onClick={handleStartSession} variant="primary">
+              {UI_COPY.impulsor.startButton}
+            </Button>
+          )}
+        </Card>
+      )}
+
+      {hasSession && !isCompleted && isRunning && (
+        <div className="status-inline">
+          <Spinner label={UI_COPY.common.loading} />
+          {lastCheck && (
+            <span className="status-inline__meta">
+              {UI_COPY.impulsor.lastCheck}: {lastCheck.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      )}
+
+      {hasSession && !isCompleted && isAudioUploaded && (
+        <InlineMessage variant="success" className="status-banner">
+          {UI_COPY.impulsor.audioReceived}
+          <Button onClick={handleContinueToSurvey} variant="primary" size="sm">
+            {UI_COPY.impulsor.continueToSurvey}
+          </Button>
+        </InlineMessage>
+      )}
+
+      {isSurveyPending && (
+        <Card title="Encuesta">
+          <SurveyForm
+            sessionId={currentSession.id}
+            onSurveySubmitted={handleSurveySubmitted}
+          />
+        </Card>
+      )}
+
+      {isCompleted && (
+        <Card title={UI_COPY.impulsor.completedTitle}>
+          <p><strong>{UI_COPY.impulsor.sessionCode}:</strong> {currentSession.session_code}</p>
+          <p><strong>{UI_COPY.impulsor.participant}:</strong> {currentSession.datos_participante?.nombre}</p>
+          <Button onClick={handleCreateNewSession} variant="primary">
+            {UI_COPY.impulsor.newSession}
+          </Button>
+        </Card>
+      )}
+    </Layout>
+  )
+}
+
+export default ImpulsorPage
