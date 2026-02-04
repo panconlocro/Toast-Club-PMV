@@ -1,35 +1,39 @@
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Optional
 
 
 class Settings(BaseSettings):
     """Application settings."""
-    
+
+    # Environment
+    ENVIRONMENT: str = "local"  # local | production
+    DEBUG: bool = False
+
     # API
     PROJECT_NAME: str = "Toast Club PMV"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
-    
+
     # Database
+    # En producción viene de Render (Postgres). En local puede usar tu default.
     DATABASE_URL: str = "postgresql://postgres:chicho2015@localhost:5432/toastclub"
-    
+
     # Security
-    # WARNING: Change SECRET_KEY in production! Use a cryptographically secure random string.
-    # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
     SECRET_KEY: str = "your-secret-key-change-in-production-NEVER-use-this-default"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
-    
-    # CORS (No olvidar agregar la url de netlify o vercel cuando se haga deploy)
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173", "http://localhost:4173"]
 
-    # Timezone (API responses)
-    # Peru timezone is UTC-5 year-round.
+    # CORS
+    # En producción setea esto en Render como:
+    # CORS_ORIGINS=https://tu-frontend.netlify.app,http://localhost:5173
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://localhost:4173"
+
+    # Timezone
     TIMEZONE: str = "America/Lima"
-    
-    # Storage (for future audio files)
+
+    # Storage
     UPLOAD_DIR: str = "uploads"
-    MAX_AUDIO_SIZE_MB: int = 100 # por si acaso un valor alto :D
+    MAX_AUDIO_SIZE_MB: int = 100
 
     # Cloudflare R2 (S3-compatible) storage
     R2_ENDPOINT_URL: str = ""
@@ -37,9 +41,28 @@ class Settings(BaseSettings):
     R2_SECRET_ACCESS_KEY: str = ""
     R2_BUCKET: str = ""
     R2_REGION: str = "auto"
-    
+
+    # ---- Helpers ----
+    @property
+    def cors_origins_list(self) -> List[str]:
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+
+    def __init__(self, **values):
+        super().__init__(**values)
+
+        # Bloqueos de seguridad en producción
+        if self.ENVIRONMENT == "production":
+            if (
+                not self.SECRET_KEY
+                or self.SECRET_KEY == "your-secret-key-change-in-production-NEVER-use-this-default"
+            ):
+                raise ValueError("SECRET_KEY must be set in production (do not use the default).")
+
+            if "localhost" in (self.DATABASE_URL or ""):
+                raise ValueError("DATABASE_URL must be a production database (not localhost).")
+
     class Config:
-        env_file = ".env"
+        env_file = ".env"  # Solo para local. En Render NO uses archivo .env, usa env vars.
         case_sensitive = True
 
 
