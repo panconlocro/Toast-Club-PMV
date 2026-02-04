@@ -320,7 +320,7 @@ Este es el endpoint **real** que debe usar Unity para subir audio.
 - Content-Type: `multipart/form-data`
 - Nombre del campo: `file`
 - El backend sube el archivo a **Cloudflare R2 (bucket privado)**
-- La BD guarda **solo la key del objeto** en `recordings.audio_url` (NO es una URL pública)
+- La BD guarda **solo la key del objeto** en `recordings.storage_key` (NO es una URL pública)
 - Si la sesión está en `running`, el backend la actualiza a `audio_uploaded`
 
 Solicitud (multipart):
@@ -333,7 +333,7 @@ Respuesta (`RecordingResponse`):
 {
   "id": 55,
   "session_id": 123,
-  "audio_url": "recordings/session_123/9f4d...-....wav",
+  "storage_key": "recordings/session_123/9f4d...-....wav",
   "duracion_segundos": null,
   "formato": "audio/wav",
   "created_at": "2026-01-08T10:35:00.000000"
@@ -415,7 +415,7 @@ Devuelve el dataset completo de sesiones.
 Notas:
 
 - Requiere rol `ANALISTA`
-- `recordings` contiene objetos con `id`, `audio_url` (key en R2) y `created_at`.
+- `recordings` contiene objetos con `id`, `storage_key` (key en R2) y `created_at`.
 - Para acceder al audio usar `/recordings/{id}/download` (URL presignada).
 
 ### GET `/dataset/export`
@@ -432,7 +432,7 @@ Formato del archivo:
 Notas:
 
 - Requiere rol `ANALISTA`.
-- `recordings.audio_url` almacena la **storage key** en R2 (no URL pública).
+- `recordings.storage_key` almacena la **storage key** en R2 (no URL pública).
 - `dataset.csv` incluye una fila por grabación (o una fila por sesión si no hay grabaciones).
 - `surveys.csv` se exporta en formato ancho si las keys son fijas, o en formato largo si son dinámicas.
 

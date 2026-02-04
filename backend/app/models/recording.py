@@ -12,7 +12,7 @@ class Recording(Base):
     session_id = Column(Integer, ForeignKey("sessions.id"), nullable=False)
     
     # Audio data
-    audio_url = Column(String, nullable=False)
+    storage_key = Column(String, nullable=False)
     duracion_segundos = Column(Float, nullable=True)
     formato = Column(String, nullable=True)  # mp3, wav, etc.
     metadata_carga = Column(JSON, nullable=True)  # Additional upload metadata

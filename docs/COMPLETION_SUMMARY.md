@@ -38,7 +38,7 @@ El PMV de Toast Club está implementado y documentado. Este documento resume lo 
 
 - `id`
 - `session_id` (FK)
-- `audio_url` (key del objeto en R2, no URL pública)
+- `storage_key` (key del objeto en R2, no URL pública)
 - `duracion_segundos`
 - `formato`
 - `metadata_carga`
