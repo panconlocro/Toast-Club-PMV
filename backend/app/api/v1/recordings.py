@@ -19,7 +19,7 @@ router = APIRouter()
 
 class RecordingCreate(BaseModel):
     """Schema for creating a recording (mock for now)."""
-    audio_url: str
+    storage_key: str
     duracion_segundos: Optional[float] = None
     formato: Optional[str] = "wav"
     metadata_carga: Optional[dict] = None
@@ -29,7 +29,7 @@ class RecordingResponse(BaseModel):
     """Schema for recording response."""
     id: int
     session_id: int
-    audio_url: str
+    storage_key: str
     duracion_segundos: Optional[float]
     formato: Optional[str]
     created_at: str
@@ -57,7 +57,7 @@ def create_recording(
     # Create recording
     recording = Recording(
         session_id=session_id,
-        audio_url=recording_data.audio_url,
+        storage_key=recording_data.storage_key,
         duracion_segundos=recording_data.duracion_segundos,
         formato=recording_data.formato,
         metadata_carga=recording_data.metadata_carga or {}
@@ -75,7 +75,7 @@ def create_recording(
     return RecordingResponse(
         id=recording.id,
         session_id=recording.session_id,
-        audio_url=recording.audio_url,
+        storage_key=recording.storage_key,
         duracion_segundos=recording.duracion_segundos,
         formato=recording.formato,
         created_at=to_local_iso(recording.created_at) or ""
@@ -119,7 +119,7 @@ async def upload_audio_file(
     
     recording = Recording(
         session_id=session_id,
-        audio_url=storage_key,  # store the storage key, not a public URL
+        storage_key=storage_key,  # store the storage key, not a public URL
         formato=file.content_type or "audio/wav",
         metadata_carga={
             "filename": file.filename,
@@ -140,7 +140,7 @@ async def upload_audio_file(
     return RecordingResponse(
         id=recording.id,
         session_id=recording.session_id,
-        audio_url=recording.audio_url,
+        storage_key=recording.storage_key,
         duracion_segundos=recording.duracion_segundos,
         formato=recording.formato,
         created_at=to_local_iso(recording.created_at) or ""
@@ -162,13 +162,13 @@ def get_recording_download_url(
     if not recording:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recording not found")
 
-    if not recording.audio_url:
+    if not recording.storage_key:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Recording has no storage key")
 
     try:
         presigned_url = presign_get_url(
             bucket=settings.R2_BUCKET,
-            key=recording.audio_url,
+            key=recording.storage_key,
             expires_seconds=expires_seconds,
         )
     except Exception as exc:

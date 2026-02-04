@@ -64,7 +64,7 @@ def get_dataset(
         recording_items = [
             {
                 "id": rec.id,
-                "audio_url": rec.audio_url,
+                "storage_key": rec.storage_key,
                 "created_at": to_local_iso(rec.created_at) or ""
             }
             for rec in recordings
@@ -132,8 +132,8 @@ def export_dataset_csv(
             if recording.formato.startswith("."):
                 return recording.formato[1:]
             return recording.formato
-        if recording.audio_url:
-            suffix = Path(recording.audio_url).suffix
+        if recording.storage_key:
+            suffix = Path(recording.storage_key).suffix
             if suffix:
                 return suffix.lstrip(".")
         return "webm"
@@ -177,7 +177,7 @@ def export_dataset_csv(
                 continue
 
             for recording in session_recordings:
-                storage_key = recording.audio_url
+                storage_key = recording.storage_key
                 audio_missing = False
                 audio_path = ""
                 formato = resolve_extension(recording)

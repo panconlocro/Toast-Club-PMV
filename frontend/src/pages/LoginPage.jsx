@@ -54,7 +54,11 @@ function LoginPage({ setIsAuthenticated, setUserRole, setMustChangePassword }) {
   return (
     <Layout title={UI_COPY.login.title} subtitle={UI_COPY.login.subtitle}>
       <Card className="login-card" title="Acceso">
-        
+        <div className="login-hero">
+          <h2 className="login-hero__title">Bienvenido</h2>
+          <p className="login-hero__text">Ingresa con tu correo y contraseña para continuar.</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="ui-form">
           <Input
             id="email"
@@ -63,7 +67,7 @@ function LoginPage({ setIsAuthenticated, setUserRole, setMustChangePassword }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="impulsador@toastclub.com"
+            placeholder="nombre@dominio.com"
           />
           
           <Input
@@ -77,15 +81,13 @@ function LoginPage({ setIsAuthenticated, setUserRole, setMustChangePassword }) {
           
           {error && <InlineMessage variant="error">{error}</InlineMessage>}
           
-          <Button type="submit" variant="primary" disabled={loading} style={{ width: '100%' }}>
+          <Button type="submit" variant="primary" disabled={loading} className="login-actions__submit">
             {loading ? UI_COPY.login.submitting : UI_COPY.login.submit}
           </Button>
         </form>
-        
-        <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
-          <p><strong>{UI_COPY.login.testAccountsTitle}:</strong></p>
-          <p>{UI_COPY.login.impulsorAccount}</p>
-          <p>{UI_COPY.login.analistaAccount}</p>
+
+        <div className="login-footer">
+          <span>Si no tienes acceso, contacta a tu administrador.</span>
         </div>
       </Card>
     </Layout>
