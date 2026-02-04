@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import ImpulsorPage from './pages/ImpulsorPage'
 import AnalistaPage from './pages/AnalistaPage'
+import AdminUsersPage from './pages/AdminUsersPage'
 import { UI_COPY } from './uiCopy'
 
 function App() {
@@ -64,6 +65,16 @@ function App() {
           element={
             isAuthenticated && userRole === 'ANALISTA' ? (
               <AnalistaPage />
+            ) : (
+              <Navigate to="/login" />
+            )
+          } 
+        />
+        <Route 
+          path="/analista/usuarios" 
+          element={
+            isAuthenticated && userRole === 'ANALISTA' ? (
+              <AdminUsersPage />
             ) : (
               <Navigate to="/login" />
             )
