@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import ImpulsorPage from './pages/ImpulsorPage'
 import AnalistaPage from './pages/AnalistaPage'
@@ -33,6 +33,9 @@ function App() {
     <div className="app">
       {isAuthenticated && (
         <nav className="nav">
+          {userRole === 'ANALISTA' && (
+            <Link to="/admin/users">Usuarios</Link>
+          )}
           <button onClick={handleLogout} className="btn btn-secondary nav__logout">
             {UI_COPY.nav.logout}
           </button>
@@ -71,7 +74,7 @@ function App() {
           } 
         />
         <Route 
-          path="/analista/usuarios" 
+          path="/admin/users" 
           element={
             isAuthenticated && userRole === 'ANALISTA' ? (
               <AdminUsersPage />
