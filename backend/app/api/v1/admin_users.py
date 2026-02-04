@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from typing import Optional, List
+import logging
 
 from ...db.session import get_db
 from ...core.security import get_current_user_id
@@ -10,6 +11,7 @@ from ...models.user import User
 from ...services.users import create_user_with_temp_password, reset_user_password, ALLOWED_ROLES
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class AdminUserCreate(BaseModel):
@@ -45,6 +47,11 @@ def _require_analista(user_id: int, db: Session) -> User:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found"
+        )
+    if user.must_change_password:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="PASSWORD_CHANGE_REQUIRED"
         )
     if user.rol != "ANALISTA":
         raise HTTPException(
@@ -105,6 +112,13 @@ def create_admin_user(
             status_code = status.HTTP_409_CONFLICT
         raise HTTPException(status_code=status_code, detail=detail) from exc
 
+    logger.info(
+        "admin_users.create user_id=%s created_user_id=%s role=%s",
+        current_user_id,
+        user.id,
+        user.rol
+    )
+
     return AdminUserCreateResponse(
         user=_build_admin_user_out(user),
         temporary_password=temporary_password
@@ -132,6 +146,11 @@ def reset_admin_user_password(
         )
 
     temporary_password = reset_user_password(db, user)
+    logger.info(
+        "admin_users.reset_password user_id=%s target_user_id=%s",
+        current_user.id,
+        user.id
+    )
     return AdminUserResetPasswordResponse(temporary_password=temporary_password)
 
 
@@ -170,4 +189,11 @@ def update_admin_user(
 
     db.commit()
     db.refresh(user)
+    logger.info(
+        "admin_users.update user_id=%s target_user_id=%s role=%s is_active=%s",
+        current_user.id,
+        user.id,
+        user.rol,
+        user.is_active
+    )
     return _build_admin_user_out(user)

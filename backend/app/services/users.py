@@ -31,7 +31,8 @@ def create_user_with_temp_password(db: Session, email: str, role: str) -> Tuple[
         email=normalized_email,
         password_hash=get_password_hash(temporary_password),
         rol=normalized_role,
-        is_active=True
+        is_active=True,
+        must_change_password=True
     )
 
     db.add(user)
@@ -44,6 +45,7 @@ def create_user_with_temp_password(db: Session, email: str, role: str) -> Tuple[
 def reset_user_password(db: Session, user: User) -> str:
     temporary_password = generate_temporary_password()
     user.password_hash = get_password_hash(temporary_password)
+    user.must_change_password = True
     db.commit()
     db.refresh(user)
     return temporary_password

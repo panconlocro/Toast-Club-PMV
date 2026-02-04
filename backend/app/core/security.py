@@ -5,6 +5,9 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .config import settings
+from ..db.session import get_db
+from ..models.user import User
+from sqlalchemy.orm import Session
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -58,14 +61,39 @@ def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(secu
     return user_id
 
 
-def get_current_user_role(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
-    """Get current user role from token."""
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    """Get current user from token."""
     token = credentials.credentials
     payload = decode_token(token)
-    role: str = payload.get("role")
-    if role is None:
+    user_id: str = payload.get("sub")
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
-    return role
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+    return user
+
+
+def require_password_changed(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.must_change_password:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="PASSWORD_CHANGE_REQUIRED",
+        )
+    return current_user
+
+
+def get_current_user_role(
+    current_user: User = Depends(require_password_changed),
+) -> str:
+    """Get current user role from token and enforce password change policy."""
+    return current_user.rol

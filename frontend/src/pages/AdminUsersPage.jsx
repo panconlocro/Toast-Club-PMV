@@ -40,6 +40,13 @@ function AdminUsersPage() {
     loadUsers()
   }, [userRole])
 
+  const getAuthErrorMessage = (err) => {
+    const status = err?.response?.status
+    if (status === 401) return 'Sesión expirada. Inicia sesión nuevamente.'
+    if (status === 403) return 'No tienes permisos para esta acción.'
+    return ''
+  }
+
   const loadUsers = async () => {
     try {
       setLoading(true)
@@ -47,7 +54,7 @@ function AdminUsersPage() {
       const data = await adminUsersAPI.listUsers()
       setUsers(data)
     } catch (err) {
-      setError(mapApiError(err, 'No se pudo cargar usuarios.'))
+      setError(getAuthErrorMessage(err) || mapApiError(err, 'No se pudo cargar usuarios.'))
     } finally {
       setLoading(false)
     }
@@ -71,7 +78,7 @@ function AdminUsersPage() {
       setCreateEmail('')
       setCreateRole('ANALISTA')
     } catch (err) {
-      setCreateError(mapApiError(err, 'No se pudo crear el usuario.'))
+      setCreateError(getAuthErrorMessage(err) || mapApiError(err, 'No se pudo crear el usuario.'))
     } finally {
       setCreateLoading(false)
     }
@@ -91,7 +98,7 @@ function AdminUsersPage() {
         temporary_password: response.temporary_password
       })
     } catch (err) {
-      setActionError(mapApiError(err, 'No se pudo resetear la contraseña.'))
+      setActionError(getAuthErrorMessage(err) || mapApiError(err, 'No se pudo resetear la contraseña.'))
     } finally {
       setActionLoading({ userId: null, action: '' })
     }
@@ -99,6 +106,12 @@ function AdminUsersPage() {
 
   const handleToggleActive = async (user) => {
     if (actionLoading.userId) return
+    if (user.is_active) {
+      const confirmed = window.confirm(`¿Desactivar a ${user.email}?`)
+      if (!confirmed) {
+        return
+      }
+    }
     setActionLoading({ userId: user.id, action: 'toggle' })
     setActionError('')
 
@@ -106,7 +119,7 @@ function AdminUsersPage() {
       const updated = await adminUsersAPI.updateUser(user.id, { is_active: !user.is_active })
       setUsers((prev) => prev.map((item) => (item.id === user.id ? updated : item)))
     } catch (err) {
-      setActionError(mapApiError(err, 'No se pudo actualizar el usuario.'))
+      setActionError(getAuthErrorMessage(err) || mapApiError(err, 'No se pudo actualizar el usuario.'))
     } finally {
       setActionLoading({ userId: null, action: '' })
     }
@@ -133,7 +146,7 @@ function AdminUsersPage() {
         return next
       })
     } catch (err) {
-      setActionError(mapApiError(err, 'No se pudo actualizar el rol.'))
+      setActionError(getAuthErrorMessage(err) || mapApiError(err, 'No se pudo actualizar el rol.'))
     } finally {
       setActionLoading({ userId: null, action: '' })
     }
@@ -188,6 +201,7 @@ function AdminUsersPage() {
           {createdTempPassword && (
             <InlineMessage variant="success">
               Contraseña temporal: <strong>{createdTempPassword}</strong>
+              <span>El usuario debe cambiar la contraseña en el primer inicio de sesión.</span>
               <Button type="button" variant="ghost" size="sm" onClick={() => handleCopy(createdTempPassword)}>
                 Copiar
               </Button>
@@ -213,6 +227,7 @@ function AdminUsersPage() {
         {resetInfo && (
           <InlineMessage variant="info">
             Contraseña temporal para <strong>{resetInfo.user?.email}</strong>: <strong>{resetInfo.temporary_password}</strong>
+            <span>El usuario debe cambiar la contraseña en el primer inicio de sesión.</span>
             <Button type="button" variant="ghost" size="sm" onClick={() => handleCopy(resetInfo.temporary_password)}>
               Copiar
             </Button>

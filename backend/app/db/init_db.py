@@ -13,6 +13,7 @@ def init_db(db: Session) -> None:
 
     # Ensure new columns exist when running without migrations
     db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE"))
+    db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT FALSE"))
     db.commit()
     
     # Create default users if they don't exist

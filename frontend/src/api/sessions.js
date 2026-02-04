@@ -18,6 +18,11 @@ export const authAPI = {
   getCurrentUser: async () => {
     const response = await apiClient.get(`${API_V1}/auth/me`)
     return response.data
+  },
+
+  changePassword: async (payload) => {
+    const response = await apiClient.post(`${API_V1}/auth/change-password`, payload)
+    return response.data
   }
 }
 
