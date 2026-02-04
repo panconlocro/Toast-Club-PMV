@@ -103,3 +103,29 @@ export const recordingsAPI = {
     return response.data
   }
 }
+
+export const adminUsersAPI = {
+  /** @returns {Promise<import('./types').UserOut[]>} */
+  listUsers: async (params = {}) => {
+    const response = await apiClient.get(`${API_V1}/admin/users`, { params })
+    return response.data
+  },
+
+  /** @returns {Promise<import('./types').CreateUserResponse>} */
+  createUser: async (payload) => {
+    const response = await apiClient.post(`${API_V1}/admin/users`, payload)
+    return response.data
+  },
+
+  /** @returns {Promise<{temporary_password: string}>} */
+  resetPassword: async (userId) => {
+    const response = await apiClient.post(`${API_V1}/admin/users/${userId}/reset-password`)
+    return response.data
+  },
+
+  /** @returns {Promise<import('./types').UserOut>} */
+  updateUser: async (userId, payload) => {
+    const response = await apiClient.patch(`${API_V1}/admin/users/${userId}`, payload)
+    return response.data
+  }
+}
