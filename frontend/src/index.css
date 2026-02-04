@@ -566,6 +566,16 @@ h3 {
   color: var(--text-muted);
 }
 
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-inline-select {
+  min-width: 160px;
+}
+
 .ui-alert--info {
   background: rgba(91, 110, 225, 0.12);
   color: #2f3b57;

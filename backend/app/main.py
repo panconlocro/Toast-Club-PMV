@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
-from .api.v1 import sessions, recordings, surveys, auth, dataset, texts
+from .api.v1 import sessions, recordings, surveys, auth, dataset, texts, admin_users
 from .db.session import SessionLocal
 from .db.init_db import init_db
 
@@ -28,6 +28,7 @@ app.include_router(recordings.router, prefix=settings.API_V1_STR, tags=["recordi
 app.include_router(surveys.router, prefix=settings.API_V1_STR, tags=["surveys"])
 app.include_router(dataset.router, prefix=settings.API_V1_STR, tags=["dataset"])
 app.include_router(texts.router, prefix=settings.API_V1_STR, tags=["texts"])
+app.include_router(admin_users.router, prefix=settings.API_V1_STR, tags=["admin"])
 
 
 @app.on_event("startup")

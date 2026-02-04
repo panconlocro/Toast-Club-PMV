@@ -37,3 +37,33 @@ export const Survey = null
 
 /** @type {Session} */
 export const Session = null
+
+/**
+ * @typedef {Object} UserOut
+ * @property {number} id
+ * @property {string} email
+ * @property {string} role
+ * @property {boolean} is_active
+ * @property {string} created_at
+ */
+
+/**
+ * @typedef {Object} CreateUserPayload
+ * @property {string} email
+ * @property {string} role
+ */
+
+/**
+ * @typedef {Object} CreateUserResponse
+ * @property {UserOut} user
+ * @property {string} temporary_password
+ */
+
+/** @type {UserOut} */
+export const UserOut = null
+
+/** @type {CreateUserPayload} */
+export const CreateUserPayload = null
+
+/** @type {CreateUserResponse} */
+export const CreateUserResponse = null

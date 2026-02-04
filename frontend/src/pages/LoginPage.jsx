@@ -9,7 +9,7 @@ import Button from '../components/ui/Button'
 import InlineMessage from '../components/ui/InlineMessage'
 import { mapApiError } from '../api/errors'
 
-function LoginPage({ setIsAuthenticated, setUserRole }) {
+function LoginPage({ setIsAuthenticated, setUserRole, setMustChangePassword }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -30,12 +30,16 @@ function LoginPage({ setIsAuthenticated, setUserRole }) {
       // Save token and role
       localStorage.setItem('token', data.access_token)
       localStorage.setItem('role', data.rol)
+      localStorage.setItem('must_change_password', data.must_change_password ? 'true' : 'false')
       
       setIsAuthenticated(true)
       setUserRole(data.rol)
+      setMustChangePassword(Boolean(data.must_change_password))
       
       // Navigate based on role
-      if (data.rol === 'IMPULSADOR') {
+      if (data.must_change_password) {
+        navigate('/change-password')
+      } else if (data.rol === 'IMPULSADOR') {
         navigate('/impulsador')
       } else if (data.rol === 'ANALISTA') {
         navigate('/analista')
