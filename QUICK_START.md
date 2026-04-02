@@ -45,7 +45,7 @@ Choose a role and login:
 ### As IMPULSADOR:
 1. **Create Session**: Fill participant info and training text
 2. **Start Session**: Begin the training workflow
-3. **Upload Recording**: Submit audio (mock)
+3. **Upload Recording**: Submit audio via `/api/v1/sessions/{session_id}/upload`
 4. **Complete Survey**: Provide feedback
 
 ### As ANALISTA:
@@ -118,6 +118,11 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
   -d '{"email":"impulsador@toastclub.com","password":"impulsador123"}'
 
 # Create session (copy token from login response)
+
+# Pick a text Id first
+curl http://localhost:8000/api/v1/texts
+
+# Create session (uses texto_seleccionado_id)
 curl -X POST http://localhost:8000/api/v1/sessions \
   -H "Content-Type: application/json" \
   -d '{
@@ -125,7 +130,7 @@ curl -X POST http://localhost:8000/api/v1/sessions \
       "nombre": "Test User",
       "edad_aproximada": 25
     },
-    "texto_seleccionado": "Practice speaking text"
+    "texto_seleccionado_id": "20251225202648_0001"
   }'
 ```
 

@@ -67,10 +67,12 @@ pip install -r requirements.txt
 
 4) **Configurar variables de entorno**
 
-En la raíz del proyecto, copia `.env.example` a `.env` y ajusta valores:
+Para desarrollo local, el backend carga variables desde `backend/.env` (ver `Settings.env_file = ".env"`).
+
+Copia `.env.example` a `backend/.env` y ajusta valores:
 
 ```bash
-copy .env.example .env
+copy .env.example backend\.env
 ```
 
 - `SECRET_KEY`: clave JWT (cámbiala para entornos reales)

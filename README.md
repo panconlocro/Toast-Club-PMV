@@ -48,8 +48,8 @@ cd Toast-Club-PMV
 ### 2. Configurar Variables de Entorno
 
 ```bash
-cp .env.example .env
-# Editar .env con tus configuraciones (opcional para desarrollo)
+cp .env.example backend/.env
+# Editar backend/.env con tus configuraciones (opcional para desarrollo)
 ```
 
 ### 3. Levantar el Proyecto con Docker
@@ -112,11 +112,13 @@ Toast-Club-PMV/
 ### Autenticación
 - `POST /api/v1/auth/login` - Iniciar sesión
 - `GET /api/v1/auth/me` - Usuario actual
+- `POST /api/v1/auth/change-password` - Cambiar contraseña
 - `POST /api/v1/auth/logout` - Cerrar sesión
 
 ### Sesiones
 - `POST /api/v1/sessions` - Crear sesión
 - `GET /api/v1/sessions/{id}` - Obtener sesión
+- `GET /api/v1/sessions/by-code/{session_code}` - Obtener sesión por código
 - `PATCH /api/v1/sessions/{id}/state` - Actualizar estado
 
 ### Grabaciones
@@ -136,6 +138,12 @@ Toast-Club-PMV/
 ### Dataset (Solo ANALISTA)
 - `GET /api/v1/dataset` - Obtener dataset completo
 - `GET /api/v1/dataset/export` - Exportar ZIP (dataset.csv, surveys.csv, audios/)
+
+### Administración (Solo ANALISTA)
+- `GET /api/v1/admin/users` - Listar usuarios
+- `POST /api/v1/admin/users` - Crear usuario (devuelve password temporal)
+- `PATCH /api/v1/admin/users/{user_id}` - Actualizar rol/estado
+- `POST /api/v1/admin/users/{user_id}/reset-password` - Reset password (devuelve password temporal)
 
 Para más detalles, consulta la [documentación de la API](docs/api_design.md).
 
@@ -171,7 +179,7 @@ Cada transición está validada por la aplicación.
 - Código único de sesión
 
 ### Recording
-- URL del audio
+- `storage_key` del audio (Cloudflare R2, bucket privado)
 - Duración y formato
 - Metadata de carga
 

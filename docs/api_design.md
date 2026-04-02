@@ -6,6 +6,7 @@ Está pensado para compartirlo con el equipo que desarrolla la app de RV en Unit
 ## URLs base
 
 - Base API: `http://localhost:8000/api/v1`
+- Root: `GET http://localhost:8000/`
 - Swagger (documentación interactiva): `http://localhost:8000/docs`
 - Chequeo de salud: `GET http://localhost:8000/health`
 
@@ -27,6 +28,32 @@ Restricción por rol (PMV actual):
 
 - Endpoints de dataset requieren `ANALISTA`
 - Descarga de audio (presigned URL) requiere `ANALISTA`
+- Endpoints de admin de usuarios requieren `ANALISTA`
+
+Claims relevantes del JWT:
+
+- `sub`: id del usuario
+- `role`: rol del usuario
+- `exp`: expiración del token
+
+Expiración del token (config default del backend):
+
+- `ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24` → **24 horas**
+
+Política `must_change_password`:
+
+- Si el usuario tiene `must_change_password=true`, la mayoría de endpoints protegidos responden `403` con:
+  ```json
+  { "detail": "PASSWORD_CHANGE_REQUIRED" }
+  ```
+- En ese caso el flujo correcto es llamar `POST /auth/change-password`.
+
+Endpoints públicos (sin autenticación) en este PMV:
+
+- `GET /texts`, `GET /texts/tags`, `GET /texts/{text_id}`
+- `POST /sessions`, `GET /sessions/{session_id}`, `GET /sessions/by-code/{session_code}`, `PATCH /sessions/{session_id}/state`
+- `POST /sessions/{session_id}/upload`, `POST /sessions/{session_id}/recording`
+- `POST /sessions/{session_id}/survey`, `GET /sessions/{session_id}/survey`
 
 ## Máquina de estados de sesión
 
@@ -95,7 +122,8 @@ Respuesta:
   "token_type": "bearer",
   "user_id": 1,
   "email": "impulsador@toastclub.com",
-  "rol": "IMPULSADOR"
+  "rol": "IMPULSADOR",
+  "must_change_password": false
 }
 ```
 
@@ -116,6 +144,28 @@ Respuesta:
 ### POST `/auth/logout`
 
 Logout basado en token. El backend devuelve un mensaje; el cliente debe descartar el token.
+
+### POST `/auth/change-password`
+
+Cambia la contraseña del usuario actual.
+
+- Requiere Bearer token.
+- Útil para usuarios creados por admin (vienen con `must_change_password=true`).
+
+Solicitud:
+
+```json
+{
+  "current_password": "temp_password_o_password_actual",
+  "new_password": "nueva_password_min_8_chars"
+}
+```
+
+Respuesta:
+
+```json
+{ "message": "Password updated" }
+```
 
 ---
 
@@ -270,10 +320,9 @@ Respuesta (`SessionResponse`):
     "Tags": { "tema": "especialización", "duracion_aprox": "6-7 min" }
   },
   "estado": "created",
-  "created_at": "2026-01-08T10:30:00.000000",
-  "updated_at": "2026-01-08T10:30:00.000000"
+  "created_at": "2026-01-08T10:30:00-05:00",
+  "updated_at": "2026-01-08T10:30:00-05:00"
 }
-```
 ```
 
 ### GET `/sessions/{session_id}`
@@ -336,7 +385,7 @@ Respuesta (`RecordingResponse`):
   "storage_key": "recordings/session_123/9f4d...-....wav",
   "duracion_segundos": null,
   "formato": "audio/wav",
-  "created_at": "2026-01-08T10:35:00.000000"
+  "created_at": "2026-01-08T10:35:00-05:00"
 }
 ```
 
@@ -362,6 +411,17 @@ Respuesta:
 ### POST `/sessions/{session_id}/recording` (solo PMV / pruebas web)
 
 Endpoint mock (JSON) que se dejó para pruebas web. Unity debe preferir `/upload`.
+
+Solicitud:
+
+```json
+{
+  "storage_key": "recordings/session_123/mi_audio.wav",
+  "duracion_segundos": 12.3,
+  "formato": "wav",
+  "metadata_carga": {"source": "web"}
+}
+```
 
 ---
 
@@ -396,7 +456,7 @@ Respuesta:
   "id": 77,
   "session_id": 123,
   "respuestas_json": { "...": "..." },
-  "created_at": "2026-01-08T10:40:00.000000"
+  "created_at": "2026-01-08T10:40:00-05:00"
 }
 ```
 
@@ -414,9 +474,33 @@ Devuelve el dataset completo de sesiones.
 
 Notas:
 
-- Requiere rol `ANALISTA`
-- `recordings` contiene objetos con `id`, `storage_key` (key en R2) y `created_at`.
+- Requiere Bearer token y rol `ANALISTA` (y no tener `must_change_password`).
+- Devuelve `dataset` con una entrada por sesión, incluyendo `recordings` y `survey_responses`.
 - Para acceder al audio usar `/recordings/{id}/download` (URL presignada).
+
+Respuesta (shape):
+
+```json
+{
+  "dataset": [
+    {
+      "session_id": 123,
+      "session_code": "abc123xyz",
+      "participant_name": "Juan Pérez",
+      "participant_age": 25,
+      "participant_email": "juan@example.com",
+      "texto_seleccionado": {"Id": "...", "Title": "...", "Pages": [], "Tags": {}},
+      "estado": "audio_uploaded",
+      "created_at": "2026-01-08T10:30:00-05:00",
+      "recordings_count": 1,
+      "recordings": [{"id": 55, "storage_key": "recordings/...", "created_at": "2026-01-08T10:35:00-05:00"}],
+      "surveys_count": 1,
+      "survey_responses": [{"experiencia_general": "excelente"}]
+    }
+  ],
+  "total_sessions": 1
+}
+```
 
 ### GET `/dataset/export`
 
@@ -431,10 +515,51 @@ Formato del archivo:
 
 Notas:
 
-- Requiere rol `ANALISTA`.
+- Requiere Bearer token y rol `ANALISTA` (y no tener `must_change_password`).
 - `recordings.storage_key` almacena la **storage key** en R2 (no URL pública).
 - `dataset.csv` incluye una fila por grabación (o una fila por sesión si no hay grabaciones).
+- Columnas actuales de `dataset.csv`:
+  - `session_id`, `session_code`, `recording_id`, `audio_file`, `formato`, `duration_seconds`, `uploaded_at`, `survey_id`, `survey_completed_at`, `audio_missing`
 - `surveys.csv` se exporta en formato ancho si las keys son fijas, o en formato largo si son dinámicas.
+
+---
+
+## Endpoints de administración de usuarios (solo ANALISTA)
+
+Estos endpoints están pensados para la UI web (admin) y requieren Bearer token con rol `ANALISTA`.
+
+### GET `/admin/users`
+
+Lista usuarios.
+
+- Query params: `skip` (default 0), `limit` (default 100)
+
+### POST `/admin/users`
+
+Crea un usuario con password temporal (devuelve `temporary_password`). El usuario queda con `must_change_password=true`.
+
+Solicitud:
+
+```json
+{ "email": "nuevo@toastclub.com", "role": "IMPULSADOR" }
+```
+
+Respuesta:
+
+```json
+{
+  "user": {"id": 10, "email": "nuevo@toastclub.com", "role": "IMPULSADOR", "is_active": true, "created_at": "..."},
+  "temporary_password": "..."
+}
+```
+
+### PATCH `/admin/users/{user_id}`
+
+Actualiza `role` y/o `is_active`.
+
+### POST `/admin/users/{user_id}/reset-password`
+
+Resetea password del usuario objetivo (no permite resetearte a ti mismo) y devuelve un password temporal.
 
 ---
 
